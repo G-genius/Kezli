@@ -1,65 +1,29 @@
-import { useState } from 'react'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+
+import Home from './pages/Home'
 import CreateTest from './pages/CreateTest'
+
 import './App.css'
 
 function App() {
-  const [page, setPage] = useState('home')
-
-  if (page === 'create') {
-    return <CreateTest />
-  }
-
   return (
-    <div className="app">
-      <main className="hero">
+    <BrowserRouter>
 
-        <div className="logo">
-          KEZLI
-        </div>
+      <Routes>
 
-        <div className="badge">
-          ✦ Узнай, кто знает тебя лучше
-        </div>
+        <Route
+          path="/"
+          element={<Home />}
+        />
 
-        <h1>
-          Насколько хорошо
-          <br />
-          тебя знают?
-        </h1>
+        <Route
+          path="/create"
+          element={<CreateTest />}
+        />
 
-        <p className="subtitle">
-          Создай свой тест, отправь друзьям
-          <br />
-          и узнай, кто действительно тебя знает.
-        </p>
+      </Routes>
 
-        <button
-          className="create-button"
-          onClick={() => setPage('create')}
-        >
-          Создать свой тест
-          <span>→</span>
-        </button>
-
-        <div className="features">
-          <div>
-            <span>01</span>
-            Создай вопросы
-          </div>
-
-          <div>
-            <span>02</span>
-            Отправь ссылку
-          </div>
-
-          <div>
-            <span>03</span>
-            Получи результат
-          </div>
-        </div>
-
-      </main>
-    </div>
+    </BrowserRouter>
   )
 }
 

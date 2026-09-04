@@ -1,0 +1,155 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, Arial, sans-serif;
+  background: #0b0b0f;
+  color: #ffffff;
+}
+
+button {
+  font-family: inherit;
+}
+
+.app {
+  min-height: 100vh;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      circle at 50% 20%,
+      rgba(139, 92, 246, 0.22),
+      transparent 35%
+    ),
+    #0b0b0f;
+}
+
+.hero {
+  min-height: 100vh;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 40px 24px 60px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+}
+
+.logo {
+  position: absolute;
+  top: 32px;
+  left: 40px;
+
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+
+.badge {
+  padding: 10px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 100px;
+
+  background: rgba(255, 255, 255, 0.05);
+
+  color: #c4b5fd;
+  font-size: 14px;
+}
+
+h1 {
+  margin: 28px 0 20px;
+
+  font-size: clamp(48px, 7vw, 86px);
+  line-height: 0.98;
+  letter-spacing: -4px;
+}
+
+.subtitle {
+  margin: 0;
+
+  color: #9999a5;
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+.create-button {
+  margin-top: 36px;
+
+  display: flex;
+  align-items: center;
+  gap: 18px;
+
+  padding: 17px 24px;
+  border: none;
+  border-radius: 14px;
+
+  background: #ffffff;
+  color: #0b0b0f;
+
+  font-size: 16px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.create-button span {
+  font-size: 22px;
+}
+
+.create-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 35px rgba(255, 255, 255, 0.15);
+}
+
+.features {
+  margin-top: 70px;
+
+  display: flex;
+  gap: 60px;
+
+  color: #777782;
+  font-size: 13px;
+}
+
+.features div {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.features span {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+@media (max-width: 600px) {
+  .logo {
+    position: static;
+    margin-bottom: 80px;
+  }
+
+  .hero {
+    padding-top: 30px;
+  }
+
+  h1 {
+    font-size: 52px;
+    letter-spacing: -2px;
+  }
+
+  .subtitle {
+    font-size: 16px;
+  }
+
+  .features {
+    gap: 24px;
+  }
+}

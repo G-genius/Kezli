@@ -93,15 +93,27 @@ function TakeTest() {
   const selectedAnswer = answers[currentQuestion]
   const isLastQuestion = currentQuestion === questions.length - 1
 
+  const progress = ((currentQuestion + 1) / questions.length) * 100
+
   return (
     <main className="page">
       <div className="test-container">
         <p>Тест от: {test.creator_name}</p>
+
         <h1>{test.title}</h1>
 
-        <p>
-          Вопрос {currentQuestion + 1} из {questions.length}
-        </p>
+        <div className="progress-info">
+          <p>
+            Вопрос {currentQuestion + 1} из {questions.length}
+          </p>
+
+          <div className="progress-bar">
+            <div
+              className="progress-fill"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </div>
 
         <h2>{question.question}</h2>
 

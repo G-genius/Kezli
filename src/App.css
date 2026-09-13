@@ -153,3 +153,54 @@ h1 {
     gap: 24px;
   }
 }
+
+.progress-info {
+  margin: 24px 0;
+}
+
+.progress-info p {
+  margin-bottom: 8px;
+  color: #a1a1aa;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #27272a;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #8b5cf6;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.answers {
+  display: grid;
+  gap: 12px;
+  margin: 24px 0;
+}
+
+.answers button {
+  width: 100%;
+  padding: 16px;
+  border: 1px solid #3f3f46;
+  border-radius: 12px;
+  background: #18181b;
+  color: #fff;
+  text-align: left;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.answers button:hover {
+  border-color: #8b5cf6;
+}
+
+.answers button.selected {
+  border-color: #8b5cf6;
+  background: #312e81;
+}

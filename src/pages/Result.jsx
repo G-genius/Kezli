@@ -12,20 +12,18 @@ function Result() {
 
   const [test, setTest] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     async function loadTest() {
-      const { data, error: testError } = await supabase
+      const { data, error } = await supabase
         .from('tests')
         .select('*')
         .eq('id', id)
         .single()
 
-      if (testError) {
-        console.error('Ошибка загрузки теста:', testError)
-        setError('Не удалось загрузить результат')
+      if (error) {
+        console.error('Ошибка загрузки теста:', error)
       } else {
         setTest(data)
       }
@@ -46,32 +44,33 @@ function Result() {
       setTimeout(() => {
         setCopied(false)
       }, 2000)
-    } catch (copyError) {
-      console.error('Не удалось скопировать ссылку:', copyError)
-      setError('Не удалось скопировать ссылку')
+    } catch (error) {
+      console.error('Не удалось скопировать ссылку:', error)
     }
   }
 
   if (loading) {
     return (
-      <main className="page result-page">
-        <div className="result-loading">
-          Загрузка результата...
+      <main className="page">
+        <div className="result-page">
+          <p className="result-loading">Загрузка результата...</p>
         </div>
       </main>
     )
   }
 
-  if (error || !test) {
+  if (!test) {
     return (
-      <main className="page result-page">
-        <div className="result-error">
-          {error || 'Тест не найден'}
+      <main className="page">
+        <div className="result-page">
+          <div className="result-error">
+            <h1>Результат не найден</h1>
+            <p>Не удалось загрузить информацию о тесте.</p>
+            <Link to="/" className="result-main-button">
+              Вернуться на главную
+            </Link>
+          </div>
         </div>
-
-        <Link className="result-button secondary" to="/">
-          Вернуться на главную
-        </Link>
       </main>
     )
   }
@@ -80,46 +79,62 @@ function Result() {
     total > 0 ? Math.round((score / total) * 100) : 0
 
   let message = 'Попробуй ещё раз'
+  let subtitle = 'Ты уже близко. Попробуй пройти тест ещё раз.'
 
   if (percentage === 100) {
     message = 'Идеальный результат!'
+    subtitle = 'Ты знаешь этого человека лучше всех.'
   } else if (percentage >= 70) {
-    message = 'Ты очень хорошо знаешь этого человека!'
+    message = 'Очень хороший результат!'
+    subtitle = 'Ты действительно хорошо знаешь этого человека.'
   } else if (percentage >= 40) {
-    message = 'Неплохой результат, но есть куда расти'
-  } else {
-    message = 'Похоже, нужно узнать друг друга получше'
+    message = 'Неплохой результат!'
+    subtitle = 'Ещё немного — и будет отличный результат.'
   }
 
   return (
-    <main className="page result-page">
-      <div className="result-container">
-        <div className="result-topline">
-          <span className="result-label">KEZLI / RESULT</span>
-          <span className="result-status">Тест завершён</span>
-        </div>
+    <main className="page">
+      <div className="result-page">
+        <Link to="/" className="result-back-link">
+          ← На главную
+        </Link>
 
-        <div className="result-heading">
-          <p className="result-creator">
-            Тест от <strong>{test.creator_name}</strong>
-          </p>
+        <div className="result-header">
+          <p className="result-eyebrow">KEZLI / РЕЗУЛЬТАТ</p>
 
           <h1>{test.title}</h1>
 
-          <p className="result-subtitle">
-            Вот насколько хорошо ты знаешь этого человека.
+          <p className="result-author">
+            Тест от <strong>{test.creator_name}</strong>
           </p>
         </div>
 
-        <section className="result-card">
-          <div className="result-card-header">
-            <span>Твой результат</span>
-            <span>{percentage}%</span>
+        <section className="result-main-card">
+          <div className="result-card-top">
+            <span className="result-label">ТВОЙ РЕЗУЛЬТАТ</span>
+
+            <span className="result-status">
+              {percentage === 100 ? 'MAX SCORE' : 'COMPLETED'}
+            </span>
           </div>
 
-          <div className="result-score">
-            <strong>{score}</strong>
-            <span>из {total}</span>
+          <div className="result-score-layout">
+            <div className="result-circle">
+              <div className="result-circle-inner">
+                <strong>{percentage}%</strong>
+                <span>правильных</span>
+              </div>
+            </div>
+
+            <div className="result-score-info">
+              <p className="result-score">
+                {score} <span>из {total}</span>
+              </p>
+
+              <h2>{message}</h2>
+
+              <p>{subtitle}</p>
+            </div>
           </div>
 
           <div className="result-progress">
@@ -129,43 +144,47 @@ function Result() {
             />
           </div>
 
-          <div className="result-message">
-            <h2>{message}</h2>
-
-            <p>
-              Ты ответил правильно на {score} из {total} вопросов.
-            </p>
+          <div className="result-progress-caption">
+            <span>0 правильных ответов</span>
+            <span>{total} правильных ответов</span>
           </div>
         </section>
 
-        <div className="result-actions">
+        <section className="result-share-card">
+          <div>
+            <p className="result-share-title">
+              Проверь друзей
+            </p>
+
+            <p className="result-share-description">
+              Поделись тестом и узнай, насколько хорошо друзья знают тебя.
+            </p>
+          </div>
+
           <button
             type="button"
-            className="result-button primary"
+            className="result-share-button"
             onClick={copyTestLink}
           >
-            {copied ? 'Ссылка скопирована' : 'Поделиться тестом'}
-            <span>↗</span>
+            {copied ? '✓ Ссылка скопирована' : 'Поделиться тестом ↗'}
           </button>
+        </section>
 
+        <div className="result-actions">
           <Link
-            className="result-button secondary"
             to={`/test/${id}`}
+            className="result-action result-action-primary"
           >
             Пройти ещё раз
           </Link>
 
           <Link
-            className="result-button secondary"
             to="/create"
+            className="result-action result-action-secondary"
           >
             Создать свой тест
           </Link>
         </div>
-
-        <Link className="result-back-link" to="/">
-          ← Вернуться на главную
-        </Link>
       </div>
     </main>
   )

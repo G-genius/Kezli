@@ -351,3 +351,63 @@ h1 {
     text-align: center;
   }
 }
+
+.site-header {
+  border-bottom: 1px solid #27272a;
+  background: #09090b;
+}
+
+.header-inner {
+  width: min(100% - 40px, 1100px);
+  min-height: 72px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.logo {
+  color: #fff;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+}
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.site-nav a {
+  color: #a1a1aa;
+  font-size: 14px;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.site-nav a:hover,
+.site-nav a.active {
+  color: #a78bfa;
+}
+
+@media (max-width: 600px) {
+  .header-inner {
+    width: min(100% - 24px, 1100px);
+    min-height: 64px;
+  }
+
+  .logo {
+    font-size: 20px;
+  }
+
+  .site-nav {
+    gap: 14px;
+  }
+
+  .site-nav a {
+    font-size: 13px;
+  }
+}

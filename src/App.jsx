@@ -5,11 +5,14 @@ import TestIntro from './pages/TestIntro'
 import TakeTest from './pages/TakeTest'
 import Result from './pages/Result'
 import Tests from './pages/Tests'
+import Header from './components/Header'
 import './App.css'
 
 function App() {
   return (
     <BrowserRouter>
+      <Header />
+
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/create" element={<CreateTest />} />

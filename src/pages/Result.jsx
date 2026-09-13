@@ -65,7 +65,9 @@ function Result() {
         <div className="result-page">
           <div className="result-error">
             <h1>Результат не найден</h1>
+
             <p>Не удалось загрузить информацию о тесте.</p>
+
             <Link to="/" className="result-main-button">
               Вернуться на главную
             </Link>
@@ -76,7 +78,11 @@ function Result() {
   }
 
   const percentage =
-    total > 0 ? Math.round((score / total) * 100) : 0
+    total > 0
+      ? Math.min(100, Math.max(0, Math.round((score / total) * 100)))
+      : 0
+
+  const circleDegrees = percentage * 3.6
 
   let message = 'Попробуй ещё раз'
   let subtitle = 'Ты уже близко. Попробуй пройти тест ещё раз.'
@@ -119,9 +125,19 @@ function Result() {
           </div>
 
           <div className="result-score-layout">
-            <div className="result-circle">
+            <div
+              className="result-circle"
+              style={{
+                background: `conic-gradient(
+                  #a78bfa 0deg,
+                  #8b5cf6 ${circleDegrees}deg,
+                  #27272a ${circleDegrees}deg
+                )`,
+              }}
+            >
               <div className="result-circle-inner">
                 <strong>{percentage}%</strong>
+
                 <span>правильных</span>
               </div>
             </div>
@@ -145,16 +161,15 @@ function Result() {
           </div>
 
           <div className="result-progress-caption">
-            <span>0 правильных ответов</span>
-            <span>{total} правильных ответов</span>
+            <span>0 правильных</span>
+
+            <span>{total} вопросов</span>
           </div>
         </section>
 
         <section className="result-share-card">
           <div>
-            <p className="result-share-title">
-              Проверь друзей
-            </p>
+            <p className="result-share-title">Проверь друзей</p>
 
             <p className="result-share-description">
               Поделись тестом и узнай, насколько хорошо друзья знают тебя.

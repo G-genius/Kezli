@@ -131,3 +131,37 @@
     text-align: center;
   }
 }
+
+.delete-test-button {
+  padding: 10px 14px;
+  border: 1px solid #7d405d;
+  border-radius: 10px;
+  background: transparent;
+  color: #e5a8c4;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.delete-test-button:hover {
+  border-color: #d66d9d;
+  background: #351b2b;
+  color: #fff0fa;
+}
+
+.delete-test-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 700px) {
+  .delete-test-button {
+    flex: 1;
+    text-align: center;
+  }
+}

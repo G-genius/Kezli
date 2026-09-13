@@ -8,6 +8,7 @@ function MyTests() {
 
   const [tests, setTests] = useState([])
   const [loading, setLoading] = useState(true)
+  const [deletingId, setDeletingId] = useState(null)
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -49,11 +50,44 @@ function MyTests() {
     loadMyTests()
   }, [navigate])
 
+  async function handleDelete(testId) {
+    const confirmed = window.confirm(
+      'Ты точно хочешь удалить этот тест? Все результаты тоже будут удалены.'
+    )
+
+    if (!confirmed) {
+      return
+    }
+
+    setDeletingId(testId)
+    setError('')
+
+    try {
+      const { error: deleteError } = await supabase
+        .from('tests')
+        .delete()
+        .eq('id', testId)
+
+      if (deleteError) {
+        throw deleteError
+      }
+
+      setTests((currentTests) =>
+        currentTests.filter((test) => test.id !== testId)
+      )
+    } catch (deleteTestError) {
+      console.error('Ошибка удаления теста:', deleteTestError)
+      setError('Не удалось удалить тест')
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
   if (loading) {
     return <main className="page">Загрузка твоих тестов...</main>
   }
 
-  if (error) {
+  if (error && tests.length === 0) {
     return (
       <main className="page">
         <div className="my-tests-container">
@@ -82,13 +116,13 @@ function MyTests() {
           </Link>
         </div>
 
+        {error && <p className="my-tests-error">{error}</p>}
+
         {tests.length === 0 ? (
           <div className="my-tests-empty">
             <h2>У тебя пока нет тестов</h2>
 
-            <p>
-              Создай первый тест о себе и отправь его друзьям.
-            </p>
+            <p>Создай первый тест о себе и отправь его друзьям.</p>
 
             <Link className="primary-link" to="/create">
               Создать первый тест
@@ -120,6 +154,15 @@ function MyTests() {
                   >
                     Результаты
                   </Link>
+
+                  <button
+                    type="button"
+                    className="delete-test-button"
+                    onClick={() => handleDelete(test.id)}
+                    disabled={deletingId === test.id}
+                  >
+                    {deletingId === test.id ? 'Удаление...' : 'Удалить'}
+                  </button>
                 </div>
               </article>
             ))}

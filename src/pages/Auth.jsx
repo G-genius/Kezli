@@ -36,10 +36,10 @@ function Auth() {
           'Регистрация прошла успешно. Проверь почту и подтверди аккаунт.'
         )
       } else {
-        navigate('/tests')
+        navigate('/my-tests')
       }
     } else {
-      navigate('/tests')
+      navigate('/my-tests')
     }
 
     setLoading(false)

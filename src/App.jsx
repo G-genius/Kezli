@@ -13,9 +13,9 @@ import TakeTest from './pages/TakeTest'
 import Result from './pages/Result'
 import Results from './pages/Results'
 import Tests from './pages/Tests'
-import Header from './components/Header'
 import Auth from './pages/Auth'
 import MyTests from './pages/MyTests'
+import Header from './components/Header'
 
 import './App.css'
 

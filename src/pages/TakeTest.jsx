@@ -1,143 +1,138 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-
-const demoTest = {
-  title: 'Насколько хорошо меня знают?',
-  creator: 'Витя',
-  questions: [
-    {
-      question: 'Какой мой любимый жанр музыки?',
-      answers: ['Рок', 'Рэп', 'Поп', 'Электроника'],
-      correct: 1,
-    },
-    {
-      question: 'Что я больше всего люблю?',
-      answers: ['Машины', 'Рыбалку', 'Готовку', 'Рисование'],
-      correct: 0,
-    },
-    {
-      question: 'Куда я хочу поехать?',
-      answers: ['Япония', 'Турция', 'Канада', 'Норвегия'],
-      correct: 1,
-    },
-  ],
-}
+import { supabase } from '../lib/supabase'
 
 function TakeTest() {
   const { id } = useParams()
   const navigate = useNavigate()
 
+  const [test, setTest] = useState(null)
+  const [questions, setQuestions] = useState([])
+  const [answers, setAnswers] = useState({})
   const [currentQuestion, setCurrentQuestion] = useState(0)
-  const [answers, setAnswers] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
-  const question = demoTest.questions[currentQuestion]
+  useEffect(() => {
+    async function loadTest() {
+      try {
+        const { data: testData, error: testError } = await supabase
+          .from('tests')
+          .select('*')
+          .eq('id', id)
+          .single()
 
-  const chooseAnswer = (answerIndex) => {
-    const newAnswers = [...answers]
-    newAnswers[currentQuestion] = answerIndex
+        if (testError) {
+          throw testError
+        }
 
-    setAnswers(newAnswers)
+        const { data: questionsData, error: questionsError } =
+          await supabase
+            .from('questions')
+            .select('*')
+            .eq('test_id', id)
+            .order('id')
 
-    setTimeout(() => {
-      if (currentQuestion < demoTest.questions.length - 1) {
-        setCurrentQuestion(currentQuestion + 1)
-      } else {
-        const score = newAnswers.reduce(
-          (total, answer, index) => {
-            if (
-              answer === demoTest.questions[index].correct
-            ) {
-              return total + 1
-            }
+        if (questionsError) {
+          throw questionsError
+        }
 
-            return total
-          },
-          0
-        )
-
-        navigate(`/result/${id}?score=${score}`)
+        setTest(testData)
+        setQuestions(questionsData)
+      } catch (loadError) {
+        console.error('Ошибка загрузки теста:', loadError)
+        setError('Не удалось загрузить тест')
+      } finally {
+        setLoading(false)
       }
-    }, 250)
+    }
+
+    loadTest()
+  }, [id])
+
+  function selectAnswer(answerIndex) {
+    setAnswers((currentAnswers) => ({
+      ...currentAnswers,
+      [currentQuestion]: answerIndex,
+    }))
   }
 
-  const progress =
-    ((currentQuestion + 1) / demoTest.questions.length) * 100
+  async function finishTest() {
+    const score = questions.reduce((total, question, index) => {
+      return total + (answers[index] === question.correct ? 1 : 0)
+    }, 0)
+
+    const { error: resultError } = await supabase
+      .from('results')
+      .insert({
+        test_id: id,
+        score,
+        total: questions.length,
+      })
+
+    if (resultError) {
+      console.error('Ошибка сохранения результата:', resultError)
+    }
+
+    navigate(`/result/${id}?score=${score}&total=${questions.length}`)
+  }
+
+  if (loading) {
+    return <main className="page">Загрузка теста...</main>
+  }
+
+  if (error) {
+    return <main className="page">{error}</main>
+  }
+
+  if (!test || questions.length === 0) {
+    return <main className="page">В этом тесте пока нет вопросов</main>
+  }
+
+  const question = questions[currentQuestion]
+  const selectedAnswer = answers[currentQuestion]
+  const isLastQuestion = currentQuestion === questions.length - 1
 
   return (
-    <div className="create-page">
-      <div className="create-container">
+    <main className="page">
+      <div className="test-container">
+        <p>Тест от: {test.creator_name}</p>
+        <h1>{test.title}</h1>
 
-        <div className="small-logo">
-          KEZLI
+        <p>
+          Вопрос {currentQuestion + 1} из {questions.length}
+        </p>
+
+        <h2>{question.question}</h2>
+
+        <div className="answers">
+          {question.answers.map((answer, index) => (
+            <button
+              key={index}
+              type="button"
+              className={selectedAnswer === index ? 'selected' : ''}
+              onClick={() => selectAnswer(index)}
+            >
+              {answer}
+            </button>
+          ))}
         </div>
 
-        <div className="question-card">
-
-          <div className="question-number">
-            ВОПРОС {currentQuestion + 1} / {demoTest.questions.length}
-          </div>
-
-          <div
-            style={{
-              width: '100%',
-              height: '5px',
-              background: 'rgba(255,255,255,0.08)',
-              borderRadius: '10px',
-              marginBottom: '35px',
-              overflow: 'hidden',
-            }}
-          >
-            <div
-              style={{
-                width: `${progress}%`,
-                height: '100%',
-                background: '#a78bfa',
-                transition: 'width 0.3s ease',
-              }}
-            />
-          </div>
-
-          <h2
-            style={{
-              fontSize: '28px',
-              lineHeight: '1.3',
-              marginBottom: '30px',
-            }}
-          >
-            {question.question}
-          </h2>
-
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '12px',
-            }}
-          >
-            {question.answers.map((answer, index) => (
-              <button
-                key={index}
-                onClick={() => chooseAnswer(index)}
-                style={{
-                  padding: '18px',
-                  borderRadius: '14px',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  background: 'rgba(255,255,255,0.04)',
-                  color: 'white',
-                  textAlign: 'left',
-                  cursor: 'pointer',
-                  fontSize: '16px',
-                }}
-              >
-                {answer}
-              </button>
-            ))}
-          </div>
-
-        </div>
-
+        <button
+          type="button"
+          disabled={selectedAnswer === undefined}
+          onClick={() => {
+            if (isLastQuestion) {
+              finishTest()
+            } else {
+              setCurrentQuestion((current) => current + 1)
+            }
+          }}
+        >
+          {isLastQuestion ? 'Завершить тест' : 'Следующий вопрос'}
+        </button>
       </div>
-    </div>
+    </main>
   )
 }
 

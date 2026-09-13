@@ -603,3 +603,39 @@ h1 {
     grid-row: 1;
   }
 }
+
+.error-message {
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  border: 1px solid #7f1d1d;
+  border-radius: 12px;
+  background: #450a0a;
+  color: #fecaca;
+}
+
+.delete-button {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #f87171;
+  cursor: pointer;
+  font: inherit;
+}
+
+.delete-button:hover:not(:disabled) {
+  color: #ef4444;
+  text-decoration: underline;
+}
+
+.delete-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+@media (max-width: 600px) {
+  .test-card-actions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}

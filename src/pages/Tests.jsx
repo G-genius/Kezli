@@ -6,6 +6,7 @@ function Tests() {
   const [tests, setTests] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [deletingId, setDeletingId] = useState(null)
 
   useEffect(() => {
     async function loadTests() {
@@ -27,12 +28,39 @@ function Tests() {
     loadTests()
   }, [])
 
-  if (loading) {
-    return <main className="page">Загрузка тестов...</main>
+  async function deleteTest(testId) {
+    const confirmed = window.confirm(
+      'Удалить этот тест? Все результаты и вопросы этого теста тоже будут удалены.'
+    )
+
+    if (!confirmed) {
+      return
+    }
+
+    setDeletingId(testId)
+    setError('')
+
+    const { error: deleteError } = await supabase
+      .from('tests')
+      .delete()
+      .eq('id', testId)
+
+    if (deleteError) {
+      console.error('Ошибка удаления теста:', deleteError)
+      setError('Не удалось удалить тест')
+      setDeletingId(null)
+      return
+    }
+
+    setTests((currentTests) =>
+      currentTests.filter((test) => test.id !== testId)
+    )
+
+    setDeletingId(null)
   }
 
-  if (error) {
-    return <main className="page">{error}</main>
+  if (loading) {
+    return <main className="page">Загрузка тестов...</main>
   }
 
   return (
@@ -41,8 +69,12 @@ function Tests() {
         <div className="page-header">
           <div>
             <p className="eyebrow">KEZLI</p>
+
             <h1>Все тесты</h1>
-            <p>Выбирай тест и проверяй, насколько хорошо ты знаешь друзей.</p>
+
+            <p>
+              Выбирай тест и проверяй, насколько хорошо ты знаешь друзей.
+            </p>
           </div>
 
           <Link className="primary-link" to="/create">
@@ -50,10 +82,15 @@ function Tests() {
           </Link>
         </div>
 
+        {error && <div className="error-message">{error}</div>}
+
         {tests.length === 0 ? (
           <div className="empty-state">
             <h2>Пока нет тестов</h2>
-            <p>Создай первый тест и поделись им с друзьями.</p>
+
+            <p>
+              Создай первый тест и поделись им с друзьями.
+            </p>
 
             <Link className="primary-link" to="/create">
               Создать первый тест
@@ -75,6 +112,15 @@ function Tests() {
                   <Link to={`/results/${test.id}`}>
                     Результаты
                   </Link>
+
+                  <button
+                    type="button"
+                    className="delete-button"
+                    disabled={deletingId === test.id}
+                    onClick={() => deleteTest(test.id)}
+                  >
+                    {deletingId === test.id ? 'Удаление...' : 'Удалить'}
+                  </button>
                 </div>
               </article>
             ))}

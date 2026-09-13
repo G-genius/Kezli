@@ -4,6 +4,7 @@ import Home from './pages/Home'
 import CreateTest from './pages/CreateTest'
 import TakeTest from './pages/TakeTest'
 import Result from './pages/Result'
+import TestIntro from './pages/TestIntro'
 
 import './App.css'
 
@@ -23,10 +24,8 @@ function App() {
           element={<CreateTest />}
         />
 
-        <Route
-          path="/test/:id"
-          element={<TakeTest />}
-        />
+        <Route path="/test/:id" element={<TestIntro />} />
+        <Route path="/test/:id/questions" element={<TakeTest />} />
 
         <Route
           path="/result/:id"

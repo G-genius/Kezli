@@ -12,6 +12,23 @@ function Result() {
   const [test, setTest] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [copied, setCopied] = useState(false)
+
+  async function copyTestLink() {
+    const link = `${window.location.origin}/test/${id}`
+
+    try {
+      await navigator.clipboard.writeText(link)
+      setCopied(true)
+
+      setTimeout(() => {
+        setCopied(false)
+      }, 2000)
+    } catch (copyError) {
+      console.error('Ошибка копирования:', copyError)
+      setError('Не удалось скопировать ссылку')
+    }
+  }
 
   useEffect(() => {
     async function loadTest() {
@@ -76,6 +93,14 @@ function Result() {
         </div>
 
         <p>{message}</p>
+
+        <button
+          type="button"
+          className="result-button"
+          onClick={copyTestLink}
+        >
+          {copied ? 'Ссылка скопирована ✓' : 'Скопировать ссылку'}
+        </button>
 
         <Link to="/create" className="result-button">
           Создать свой тест

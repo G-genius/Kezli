@@ -7,6 +7,7 @@ function Tests() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [deletingId, setDeletingId] = useState(null)
+  const [copiedId, setCopiedId] = useState(null)
 
   useEffect(() => {
     async function loadTests() {
@@ -27,6 +28,30 @@ function Tests() {
 
     loadTests()
   }, [])
+
+  function formatDate(date) {
+    return new Date(date).toLocaleDateString('ru-RU', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
+  }
+
+  async function shareTest(testId) {
+    const shareUrl = `${window.location.origin}/test/${testId}`
+
+    try {
+      await navigator.clipboard.writeText(shareUrl)
+      setCopiedId(testId)
+
+      setTimeout(() => {
+        setCopiedId(null)
+      }, 2000)
+    } catch (shareError) {
+      console.error('Ошибка копирования ссылки:', shareError)
+      setError('Не удалось скопировать ссылку')
+    }
+  }
 
   async function deleteTest(testId) {
     const confirmed = window.confirm(
@@ -88,9 +113,7 @@ function Tests() {
           <div className="empty-state">
             <h2>Пока нет тестов</h2>
 
-            <p>
-              Создай первый тест и поделись им с друзьями.
-            </p>
+            <p>Создай первый тест и поделись им с друзьями.</p>
 
             <Link className="primary-link" to="/create">
               Создать первый тест
@@ -100,18 +123,30 @@ function Tests() {
           <div className="tests-list">
             {tests.map((test) => (
               <article className="test-card" key={test.id}>
-                <p>Тест от: {test.creator_name}</p>
+                <div className="test-card-top">
+                  <span className="test-card-label">Тест от</span>
+
+                  <span className="test-card-date">
+                    {formatDate(test.created_at)}
+                  </span>
+                </div>
 
                 <h2>{test.title}</h2>
 
-                <div className="test-card-actions">
-                  <Link to={`/test/${test.id}`}>
-                    Пройти тест
-                  </Link>
+                <p className="test-card-author">{test.creator_name}</p>
 
-                  <Link to={`/results/${test.id}`}>
-                    Результаты
-                  </Link>
+                <div className="test-card-actions">
+                  <Link to={`/test/${test.id}`}>Пройти тест</Link>
+
+                  <Link to={`/results/${test.id}`}>Результаты</Link>
+
+                  <button
+                    type="button"
+                    className="share-button"
+                    onClick={() => shareTest(test.id)}
+                  >
+                    {copiedId === test.id ? 'Скопировано' : 'Поделиться'}
+                  </button>
 
                   <button
                     type="button"

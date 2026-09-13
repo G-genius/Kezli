@@ -14,7 +14,7 @@ function createEmptyQuestion() {
 function CreateTest() {
   const navigate = useNavigate()
 
-  const [name, setName] = useState('')
+  const [creatorName, setCreatorName] = useState('')
   const [title, setTitle] = useState('')
   const [questions, setQuestions] = useState([createEmptyQuestion()])
   const [loading, setLoading] = useState(false)
@@ -35,18 +35,16 @@ function CreateTest() {
 
   function updateAnswer(questionIndex, answerIndex, value) {
     setQuestions((currentQuestions) =>
-      currentQuestions.map((question, index) => {
-        if (index !== questionIndex) {
-          return question
-        }
-
-        return {
-          ...question,
-          answers: question.answers.map((answer, currentAnswerIndex) =>
-            currentAnswerIndex === answerIndex ? value : answer
-          ),
-        }
-      })
+      currentQuestions.map((question, index) =>
+        index === questionIndex
+          ? {
+              ...question,
+              answers: question.answers.map((answer, currentAnswerIndex) =>
+                currentAnswerIndex === answerIndex ? value : answer
+              ),
+            }
+          : question
+      )
     )
   }
 
@@ -84,8 +82,8 @@ function CreateTest() {
     event.preventDefault()
     setError('')
 
-    if (!name.trim() || !title.trim()) {
-      setError('Заполни имя и название теста')
+    if (!creatorName.trim() || !title.trim()) {
+      setError('Заполни имя создателя и название теста')
       return
     }
 
@@ -103,11 +101,27 @@ function CreateTest() {
     setLoading(true)
 
     try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser()
+
+      if (userError) {
+        throw userError
+      }
+
+      if (!user) {
+        setError('Сначала войди в аккаунт')
+        navigate('/auth')
+        return
+      }
+
       const { data: test, error: testError } = await supabase
         .from('tests')
         .insert({
-          creator_name: name.trim(),
+          creator_name: creatorName.trim(),
           title: title.trim(),
+          user_id: user.id,
         })
         .select()
         .single()
@@ -146,160 +160,114 @@ function CreateTest() {
         <div className="page-heading">
           <p className="eyebrow">KEZLI</p>
 
-          <h1>Создай свой тест</h1>
+          <h1>Создать тест</h1>
 
           <p>
-            Придумай вопросы о себе и проверь, насколько хорошо тебя знают
-            друзья или любимый человек.
+            Добавь вопросы о себе и проверь, насколько хорошо тебя знают
+            друзья.
           </p>
         </div>
 
         <form className="create-form" onSubmit={handleSubmit}>
-          <div className="form-section">
-            <div className="form-section-heading">
-              <span className="form-section-number">01</span>
+          <label className="form-field">
+            <span>Твоё имя</span>
 
-              <div>
-                <h2>Основная информация</h2>
-                <p>Расскажи, чей это будет тест.</p>
-              </div>
-            </div>
+            <input
+              type="text"
+              value={creatorName}
+              onChange={(event) => setCreatorName(event.target.value)}
+              placeholder="Например, Виталий"
+            />
+          </label>
 
-            <div className="form-fields">
-              <label>
-                Твоё имя
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(event) => setName(event.target.value)}
-                  placeholder="Например, Виталий"
-                />
-              </label>
+          <label className="form-field">
+            <span>Название теста</span>
 
-              <label>
-                Название теста
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(event) => setTitle(event.target.value)}
-                  placeholder="Насколько хорошо ты меня знаешь?"
-                />
-              </label>
-            </div>
-          </div>
+            <input
+              type="text"
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              placeholder="Насколько хорошо вы меня знаете?"
+            />
+          </label>
 
           <div className="questions-heading">
-            <div className="form-section-heading">
-              <span className="form-section-number">02</span>
+            <div>
+              <h2>Вопросы</h2>
 
-              <div>
-                <h2>Вопросы</h2>
-                <p>У каждого вопроса должно быть четыре варианта ответа.</p>
-              </div>
+              <p>У каждого вопроса должно быть четыре варианта ответа.</p>
             </div>
 
-            <span className="questions-count">
-              {questions.length} шт.
-            </span>
+            <span>{questions.length}</span>
           </div>
 
           <div className="questions-list">
             {questions.map((question, questionIndex) => (
-              <section className="question-form-card" key={questionIndex}>
-                <div className="question-form-header">
-                  <div>
-                    <span className="question-label">
-                      Вопрос {String(questionIndex + 1).padStart(2, '0')}
-                    </span>
+              <div className="question-form-card" key={questionIndex}>
+                <div className="question-card-heading">
+                  <h3>Вопрос {questionIndex + 1}</h3>
 
-                    <h3>Проверь своих друзей</h3>
-                  </div>
-
-                  <button
-                    type="button"
-                    className="remove-question-button"
-                    disabled={questions.length === 1}
-                    onClick={() => removeQuestion(questionIndex)}
-                  >
-                    Удалить
-                  </button>
+                  {questions.length > 1 && (
+                    <button
+                      type="button"
+                      className="remove-question-button"
+                      onClick={() => removeQuestion(questionIndex)}
+                    >
+                      Удалить
+                    </button>
+                  )}
                 </div>
 
-                <label>
-                  Текст вопроса
+                <label className="form-field">
+                  <span>Текст вопроса</span>
+
                   <input
                     type="text"
                     value={question.question}
                     onChange={(event) =>
                       updateQuestion(questionIndex, event.target.value)
                     }
-                    placeholder="Какой мой любимый цвет?"
+                    placeholder="Например, какая моя любимая машина?"
                   />
                 </label>
 
-                <div className="answers-heading">
-                  <div>
-                    <h4>Варианты ответа</h4>
-                    <p>Нажми на галочку рядом с правильным ответом.</p>
-                  </div>
-
-                  <span>✓ Верный</span>
-                </div>
-
                 <div className="answers-form">
-                  {question.answers.map((answer, answerIndex) => {
-                    const isCorrect = question.correct === answerIndex
+                  <p>Варианты ответа</p>
 
-                    return (
-                      <div className="answer-row" key={answerIndex}>
-                        <label className="answer-input-label">
-                          <span>
-                            Вариант {String(answerIndex + 1).padStart(2, '0')}
-                          </span>
+                  {question.answers.map((answer, answerIndex) => (
+                    <div className="answer-row" key={answerIndex}>
+                      <input
+                        type="radio"
+                        name={`correct-answer-${questionIndex}`}
+                        checked={question.correct === answerIndex}
+                        onChange={() =>
+                          updateCorrectAnswer(
+                            questionIndex,
+                            answerIndex
+                          )
+                        }
+                      />
 
-                          <input
-                            type="text"
-                            value={answer}
-                            onChange={(event) =>
-                              updateAnswer(
-                                questionIndex,
-                                answerIndex,
-                                event.target.value
-                              )
-                            }
-                            placeholder={`Вариант ${answerIndex + 1}`}
-                          />
-                        </label>
+                      <input
+                        type="text"
+                        value={answer}
+                        onChange={(event) =>
+                          updateAnswer(
+                            questionIndex,
+                            answerIndex,
+                            event.target.value
+                          )
+                        }
+                        placeholder={`Вариант ${answerIndex + 1}`}
+                      />
+                    </div>
+                  ))}
 
-                        <label
-                          className={`correct-answer-checkbox ${
-                            isCorrect ? 'selected' : ''
-                          }`}
-                          title={
-                            isCorrect
-                              ? 'Правильный ответ выбран'
-                              : 'Выбрать правильным'
-                          }
-                        >
-                          <input
-                            type="radio"
-                            name={`correct-answer-${questionIndex}`}
-                            checked={isCorrect}
-                            onChange={() =>
-                              updateCorrectAnswer(
-                                questionIndex,
-                                answerIndex
-                              )
-                            }
-                          />
-
-                          <span>✓</span>
-                        </label>
-                      </div>
-                    )
-                  })}
+                  <small>
+                    Отметь кружком правильный вариант ответа.
+                  </small>
                 </div>
-              </section>
+              </div>
             ))}
           </div>
 
@@ -308,15 +276,17 @@ function CreateTest() {
             className="add-question-button"
             onClick={addQuestion}
           >
-            <span>+</span>
-            Добавить ещё вопрос
+            + Добавить ещё вопрос
           </button>
 
           {error && <p className="form-error">{error}</p>}
 
-          <button type="submit" className="create-submit-button" disabled={loading}>
+          <button
+            type="submit"
+            className="primary-button"
+            disabled={loading}
+          >
             {loading ? 'Создание...' : 'Создать тест'}
-            {!loading && <span>↗</span>}
           </button>
         </form>
       </div>

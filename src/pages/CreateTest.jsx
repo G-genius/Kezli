@@ -3,53 +3,56 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import './CreateTest.css'
 
+function createEmptyQuestion() {
+  return {
+    question: '',
+    answers: ['', '', '', ''],
+    correct: 0,
+  }
+}
+
 function CreateTest() {
   const navigate = useNavigate()
 
   const [name, setName] = useState('')
   const [title, setTitle] = useState('')
-  const [questions, setQuestions] = useState([
-    {
-      question: '',
-      answers: ['', '', '', ''],
-      correct: 0,
-    },
-  ])
-
+  const [questions, setQuestions] = useState([createEmptyQuestion()])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   function updateQuestion(questionIndex, value) {
     setQuestions((currentQuestions) =>
-      currentQuestions.map((item, index) =>
+      currentQuestions.map((question, index) =>
         index === questionIndex
-          ? { ...item, question: value }
-          : item
+          ? { ...question, question: value }
+          : question
       )
     )
   }
 
   function updateAnswer(questionIndex, answerIndex, value) {
     setQuestions((currentQuestions) =>
-      currentQuestions.map((item, index) =>
-        index === questionIndex
-          ? {
-              ...item,
-              answers: item.answers.map((answer, currentAnswerIndex) =>
-                currentAnswerIndex === answerIndex ? value : answer
-              ),
-            }
-          : item
-      )
+      currentQuestions.map((question, index) => {
+        if (index !== questionIndex) {
+          return question
+        }
+
+        return {
+          ...question,
+          answers: question.answers.map((answer, currentAnswerIndex) =>
+            currentAnswerIndex === answerIndex ? value : answer
+          ),
+        }
+      })
     )
   }
 
   function updateCorrectAnswer(questionIndex, answerIndex) {
     setQuestions((currentQuestions) =>
-      currentQuestions.map((item, index) =>
+      currentQuestions.map((question, index) =>
         index === questionIndex
-          ? { ...item, correct: answerIndex }
-          : item
+          ? { ...question, correct: answerIndex }
+          : question
       )
     )
   }
@@ -57,12 +60,18 @@ function CreateTest() {
   function addQuestion() {
     setQuestions((currentQuestions) => [
       ...currentQuestions,
-      {
-        question: '',
-        answers: ['', '', '', ''],
-        correct: 0,
-      },
+      createEmptyQuestion(),
     ])
+  }
+
+  function removeQuestion(questionIndex) {
+    if (questions.length === 1) {
+      return
+    }
+
+    setQuestions((currentQuestions) =>
+      currentQuestions.filter((_, index) => index !== questionIndex)
+    )
   }
 
   async function handleSubmit(event) {
@@ -75,9 +84,9 @@ function CreateTest() {
     }
 
     const hasEmptyQuestion = questions.some(
-      (item) =>
-        !item.question.trim() ||
-        item.answers.some((answer) => !answer.trim())
+      (question) =>
+        !question.question.trim() ||
+        question.answers.some((answer) => !answer.trim())
     )
 
     if (hasEmptyQuestion) {
@@ -85,9 +94,9 @@ function CreateTest() {
       return
     }
 
-    try {
-      setLoading(true)
+    setLoading(true)
 
+    try {
       const { data: test, error: testError } = await supabase
         .from('tests')
         .insert({
@@ -101,11 +110,11 @@ function CreateTest() {
         throw testError
       }
 
-      const questionsToInsert = questions.map((item) => ({
+      const questionsToInsert = questions.map((question) => ({
         test_id: test.id,
-        question: item.question.trim(),
-        answers: item.answers,
-        correct: item.correct,
+        question: question.question.trim(),
+        answers: question.answers.map((answer) => answer.trim()),
+        correct: question.correct,
       }))
 
       const { error: questionsError } = await supabase
@@ -118,34 +127,35 @@ function CreateTest() {
 
       navigate(`/test/${test.id}`)
     } catch (submitError) {
-      console.error('Ошибка Supabase:', submitError)
-
-      setError(
-        submitError?.message ||
-          submitError?.details ||
-          'Не удалось сохранить тест'
-      )
+      console.error('Ошибка создания теста:', submitError)
+      setError('Не удалось создать тест')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <main className="create-page">
+    <main className="page">
       <div className="create-container">
-        <h1>Создать тест</h1>
-        <p className="create-subtitle">
-          Сделай тест о себе и отправь его друзьям
-        </p>
+        <div className="page-heading">
+          <p className="eyebrow">KEZLI</p>
 
-        <form onSubmit={handleSubmit}>
+          <h1>Создай свой тест</h1>
+
+          <p>
+            Придумай вопросы о себе и проверь, насколько хорошо тебя знают
+            друзья.
+          </p>
+        </div>
+
+        <form className="create-form" onSubmit={handleSubmit}>
           <label>
             Твоё имя
             <input
               type="text"
               value={name}
               onChange={(event) => setName(event.target.value)}
-              placeholder="Например, Витя"
+              placeholder="Например, Виталий"
             />
           </label>
 
@@ -159,71 +169,103 @@ function CreateTest() {
             />
           </label>
 
-          {questions.map((item, questionIndex) => (
-            <section className="question-card" key={questionIndex}>
-              <h2>Вопрос {questionIndex + 1}</h2>
+          <div className="questions-heading">
+            <div>
+              <h2>Вопросы</h2>
+              <p>Добавь минимум один вопрос.</p>
+            </div>
 
-              <label>
-                Вопрос
-                <input
-                  type="text"
-                  value={item.question}
-                  onChange={(event) =>
-                    updateQuestion(questionIndex, event.target.value)
-                  }
-                  placeholder="Какой мой любимый цвет?"
-                />
-              </label>
+            <span>{questions.length} шт.</span>
+          </div>
 
-              {item.answers.map((answer, answerIndex) => (
-                <div className="answer-row" key={answerIndex}>
+          <div className="questions-list">
+            {questions.map((question, questionIndex) => (
+              <section className="question-form-card" key={questionIndex}>
+                <div className="question-form-header">
+                  <h3>Вопрос {questionIndex + 1}</h3>
+
+                  <button
+                    type="button"
+                    className="remove-question-button"
+                    disabled={questions.length === 1}
+                    onClick={() => removeQuestion(questionIndex)}
+                  >
+                    Удалить
+                  </button>
+                </div>
+
+                <label>
+                  Текст вопроса
                   <input
                     type="text"
-                    value={answer}
+                    value={question.question}
                     onChange={(event) =>
-                      updateAnswer(
-                        questionIndex,
-                        answerIndex,
-                        event.target.value
-                      )
+                      updateQuestion(questionIndex, event.target.value)
                     }
-                    placeholder={`Вариант ${answerIndex + 1}`}
+                    placeholder="Какой мой любимый цвет?"
                   />
+                </label>
 
-                  <label className="correct-label">
-                    <input
-                      type="radio"
-                      name={`correct-${questionIndex}`}
-                      checked={item.correct === answerIndex}
-                      onChange={() =>
-                        updateCorrectAnswer(
-                          questionIndex,
-                          answerIndex
-                        )
-                      }
-                    />
-                    Верный
-                  </label>
+                <div className="answers-form">
+                  {question.answers.map((answer, answerIndex) => (
+                    <div className="answer-row" key={answerIndex}>
+                      <label className="answer-input-label">
+                        <span>Вариант {answerIndex + 1}</span>
+
+                        <input
+                          type="text"
+                          value={answer}
+                          onChange={(event) =>
+                            updateAnswer(
+                              questionIndex,
+                              answerIndex,
+                              event.target.value
+                            )
+                          }
+                          placeholder={`Вариант ${answerIndex + 1}`}
+                        />
+                      </label>
+
+                      <label
+                        className={`correct-answer-checkbox ${
+                          question.correct === answerIndex ? 'selected' : ''
+                        }`}
+                        title="Сделать правильным ответом"
+                      >
+                        <input
+                          type="radio"
+                          name={`correct-answer-${questionIndex}`}
+                          checked={question.correct === answerIndex}
+                          onChange={() =>
+                            updateCorrectAnswer(
+                              questionIndex,
+                              answerIndex
+                            )
+                          }
+                        />
+
+                        <span>✓</span>
+                      </label>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </section>
-          ))}
-
-          {error && <p className="error-message">{error}</p>}
-
-          <div className="create-actions">
-            <button
-              type="button"
-              className="secondary-button"
-              onClick={addQuestion}
-            >
-              + Добавить вопрос
-            </button>
-
-            <button type="submit" disabled={loading}>
-              {loading ? 'Сохраняем...' : 'Создать тест'}
-            </button>
+              </section>
+            ))}
           </div>
+
+          <button
+            type="button"
+            className="add-question-button"
+            onClick={addQuestion}
+          >
+            + Добавить вопрос
+          </button>
+
+          {error && <p className="form-error">{error}</p>}
+
+          <button type="submit" disabled={loading}>
+            {loading ? 'Создание...' : 'Создать тест'}
+          </button>
         </form>
       </div>
     </main>

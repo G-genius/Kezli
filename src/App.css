@@ -244,3 +244,110 @@ h1 {
   border-color: #8b5cf6;
   background: #27272a;
 }
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.page-header h1 {
+  margin-bottom: 12px;
+}
+
+.page-header p {
+  color: #a1a1aa;
+}
+
+.eyebrow {
+  margin-bottom: 8px;
+  color: #a78bfa;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.primary-link,
+.secondary-link {
+  display: inline-block;
+  padding: 14px 20px;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: 0.2s;
+}
+
+.primary-link {
+  background: #8b5cf6;
+  color: #fff;
+}
+
+.primary-link:hover {
+  background: #7c3aed;
+}
+
+.secondary-link {
+  border: 1px solid #3f3f46;
+  color: #fff;
+}
+
+.secondary-link:hover {
+  border-color: #8b5cf6;
+  background: #27272a;
+}
+
+.tests-list {
+  display: grid;
+  gap: 16px;
+}
+
+.test-card {
+  padding: 24px;
+  border: 1px solid #3f3f46;
+  border-radius: 16px;
+  background: #18181b;
+}
+
+.test-card p {
+  margin-bottom: 8px;
+  color: #a1a1aa;
+  font-size: 14px;
+}
+
+.test-card h2 {
+  margin-bottom: 20px;
+}
+
+.test-card a {
+  color: #a78bfa;
+  text-decoration: none;
+}
+
+.test-card a:hover {
+  text-decoration: underline;
+}
+
+.empty-state {
+  padding: 40px 24px;
+  border: 1px dashed #3f3f46;
+  border-radius: 16px;
+  text-align: center;
+}
+
+.empty-state p {
+  margin: 12px 0 24px;
+  color: #a1a1aa;
+}
+
+@media (max-width: 600px) {
+  .page-header {
+    flex-direction: column;
+  }
+
+  .page-header .primary-link {
+    width: 100%;
+    text-align: center;
+  }
+}

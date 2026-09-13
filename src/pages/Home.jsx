@@ -2,58 +2,28 @@ import { Link } from 'react-router-dom'
 
 function Home() {
   return (
-    <div className="app">
-      <main className="hero">
+    <main className="page">
+      <div className="hero">
+        <p className="eyebrow">KEZLI</p>
 
-        <div className="logo">
-          KEZLI
-        </div>
+        <h1>Насколько хорошо тебя знают друзья?</h1>
 
-        <div className="badge">
-          ✦ Узнай, кто знает тебя лучше
-        </div>
-
-        <h1>
-          Насколько хорошо
-          <br />
-          тебя знают?
-        </h1>
-
-        <p className="subtitle">
-          Создай свой тест, отправь друзьям
-          <br />
-          и узнай, кто действительно тебя знает.
+        <p className="hero-description">
+          Создай тест о себе, отправь ссылку друзьям и узнай, кто знает тебя
+          лучше всех.
         </p>
 
-        <Link
-          to="/create"
-          className="create-button"
-        >
-          Создать свой тест
-          <span>→</span>
-        </Link>
+        <div className="hero-actions">
+          <Link className="primary-link" to="/create">
+            Создать тест
+          </Link>
 
-        <div className="features">
-
-          <div>
-            <span>01</span>
-            Создай вопросы
-          </div>
-
-          <div>
-            <span>02</span>
-            Отправь ссылку
-          </div>
-
-          <div>
-            <span>03</span>
-            Получи результат
-          </div>
-
+          <Link className="secondary-link" to="/tests">
+            Все тесты
+          </Link>
         </div>
-
-      </main>
-    </div>
+      </div>
+    </main>
   )
 }
 

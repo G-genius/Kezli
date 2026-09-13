@@ -4,6 +4,7 @@ import CreateTest from './pages/CreateTest'
 import TestIntro from './pages/TestIntro'
 import TakeTest from './pages/TakeTest'
 import Result from './pages/Result'
+import Results from './pages/Results'
 import Tests from './pages/Tests'
 import Header from './components/Header'
 import './App.css'
@@ -20,6 +21,7 @@ function App() {
         <Route path="/test/:id" element={<TestIntro />} />
         <Route path="/test/:id/questions" element={<TakeTest />} />
         <Route path="/result/:id" element={<Result />} />
+        <Route path="/results/:id" element={<Results />} />
       </Routes>
     </BrowserRouter>
   )

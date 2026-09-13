@@ -67,9 +67,15 @@ function Tests() {
 
                 <h2>{test.title}</h2>
 
-                <Link to={`/test/${test.id}`}>
-                  Пройти тест
-                </Link>
+                <div className="test-card-actions">
+                  <Link to={`/test/${test.id}`}>
+                    Пройти тест
+                  </Link>
+
+                  <Link to={`/results/${test.id}`}>
+                    Результаты
+                  </Link>
+                </div>
               </article>
             ))}
           </div>

@@ -1,249 +1,169 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import './TestIntro.css'
 
-function TakeTest() {
+function TestIntro() {
   const { id } = useParams()
-  const navigate = useNavigate()
 
   const [test, setTest] = useState(null)
-  const [questions, setQuestions] = useState([])
-  const [currentQuestion, setCurrentQuestion] = useState(0)
-  const [answers, setAnswers] = useState({})
   const [loading, setLoading] = useState(true)
-  const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     async function loadTest() {
-      const { data: testData, error: testError } = await supabase
-        .from('tests')
-        .select('*')
-        .eq('id', id)
-        .single()
-
-      if (testError) {
-        console.error('Ошибка загрузки теста:', testError)
-        setError('Не удалось загрузить тест')
-        setLoading(false)
-        return
-      }
-
-      const { data: questionsData, error: questionsError } =
-        await supabase
-          .from('questions')
+      try {
+        const { data, error: testError } = await supabase
+          .from('tests')
           .select('*')
-          .eq('test_id', id)
-          .order('id', { ascending: true })
+          .eq('id', id)
+          .single()
 
-      if (questionsError) {
-        console.error('Ошибка загрузки вопросов:', questionsError)
-        setError('Не удалось загрузить вопросы')
+        if (testError) {
+          throw testError
+        }
+
+        setTest(data)
+      } catch (loadError) {
+        console.error('Ошибка загрузки теста:', loadError)
+        setError('Тест не найден')
+      } finally {
         setLoading(false)
-        return
       }
-
-      setTest(testData)
-      setQuestions(questionsData || [])
-      setLoading(false)
     }
 
     loadTest()
   }, [id])
 
-  function selectAnswer(answerIndex) {
-    setAnswers((currentAnswers) => ({
-      ...currentAnswers,
-      [currentQuestion]: answerIndex,
-    }))
-  }
+  async function handleShare() {
+    const testUrl = window.location.href
 
-  async function finishTest() {
-    setSubmitting(true)
-    setError('')
+    try {
+      await navigator.clipboard.writeText(testUrl)
+      setCopied(true)
 
-    const score = questions.reduce((total, question, index) => {
-      if (answers[index] === question.correct) {
-        return total + 1
+      setTimeout(() => {
+        setCopied(false)
+      }, 2500)
+    } catch (shareError) {
+      console.error('Ошибка копирования ссылки:', shareError)
+
+      const textArea = document.createElement('textarea')
+      textArea.value = testUrl
+      textArea.style.position = 'fixed'
+      textArea.style.opacity = '0'
+
+      document.body.appendChild(textArea)
+      textArea.focus()
+      textArea.select()
+
+      try {
+        document.execCommand('copy')
+        setCopied(true)
+
+        setTimeout(() => {
+          setCopied(false)
+        }, 2500)
+      } catch (fallbackError) {
+        console.error('Не удалось скопировать ссылку:', fallbackError)
       }
 
-      return total
-    }, 0)
-
-    const { error: resultError } = await supabase
-      .from('results')
-      .insert({
-        test_id: id,
-        score,
-        total: questions.length,
-      })
-
-    if (resultError) {
-      console.error('Ошибка сохранения результата:', resultError)
-
-      setError(
-        resultError.message || 'Не удалось сохранить результат'
-      )
-
-      setSubmitting(false)
-      return
+      document.body.removeChild(textArea)
     }
-
-    navigate(
-      `/result/${id}?score=${score}&total=${questions.length}`
-    )
-  }
-
-  function goNext() {
-    if (currentQuestion === questions.length - 1) {
-      finishTest()
-      return
-    }
-
-    setCurrentQuestion((current) => current + 1)
-  }
-
-  function goBack() {
-    setCurrentQuestion((current) => Math.max(current - 1, 0))
   }
 
   if (loading) {
     return (
-      <main className="page">
-        <div className="take-test-container">
-          <p className="loading-text">Загрузка теста...</p>
-        </div>
+      <main className="page intro-page">
+        <div className="intro-loading">Загрузка теста...</div>
       </main>
     )
   }
 
-  if (error || !test || questions.length === 0) {
+  if (error) {
     return (
-      <main className="page">
-        <div className="take-test-container">
-          <div className="error-state">
-            <p>
-              {error || 'В этом тесте пока нет вопросов'}
-            </p>
-          </div>
+      <main className="page intro-page">
+        <div className="intro-error">
+          <span>404</span>
+          <h1>{error}</h1>
+
+          <Link to="/tests" className="intro-secondary-button">
+            Вернуться к тестам
+          </Link>
         </div>
       </main>
     )
   }
-
-  const question = questions[currentQuestion]
-  const selectedAnswer = answers[currentQuestion]
-  const progress =
-    ((currentQuestion + 1) / questions.length) * 100
-  const isLastQuestion =
-    currentQuestion === questions.length - 1
 
   return (
-    <main className="page">
-      <div className="take-test-container">
-        <div className="take-test-top">
-          <button
-            type="button"
-            className="back-button"
-            onClick={() => navigate(`/test/${id}`)}
-          >
-            ← Назад
-          </button>
-
-          <span className="take-test-counter">
-            {String(currentQuestion + 1).padStart(2, '0')} /{' '}
-            {String(questions.length).padStart(2, '0')}
-          </span>
+    <main className="page intro-page">
+      <div className="intro-container">
+        <div className="intro-topline">
+          <span className="intro-badge">KEZLI TEST</span>
+          <span className="intro-number">01</span>
         </div>
 
-        <div className="take-test-heading">
-          <p className="eyebrow">KEZLI / TEST</p>
+        <div className="intro-content">
+          <p className="intro-label">Тест от {test.creator_name}</p>
 
           <h1>{test.title}</h1>
 
-          <p>
-            Тест от <strong>{test.creator_name}</strong>
+          <p className="intro-description">
+            Проверь, насколько хорошо ты знаешь этого человека.
+            Отвечай честно и узнай свой результат в конце.
           </p>
-        </div>
 
-        <div className="test-progress">
-          <div
-            className="test-progress-bar"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
+          <div className="intro-info">
+            <div className="intro-info-item">
+              <span className="intro-info-icon">✦</span>
 
-        <section className="take-test-card">
-          <div className="question-number">
-            ВОПРОС{' '}
-            {String(currentQuestion + 1).padStart(2, '0')}
+              <div>
+                <strong>Личные вопросы</strong>
+                <span>Только о человеке, который создал тест</span>
+              </div>
+            </div>
+
+            <div className="intro-info-item">
+              <span className="intro-info-icon">↗</span>
+
+              <div>
+                <strong>Результат в конце</strong>
+                <span>Узнай, сколько ответов ты угадал</span>
+              </div>
+            </div>
           </div>
 
-          <h2>{question.question}</h2>
+          <div className="intro-actions">
+            <Link
+              to={`/test/${id}/questions`}
+              className="intro-primary-button"
+            >
+              Пройти тест
+              <span>↗</span>
+            </Link>
 
-          <div className="take-answers">
-            {question.answers.map((answer, answerIndex) => {
-              const isSelected =
-                selectedAnswer === answerIndex
+            <button
+              type="button"
+              className="intro-share-button"
+              onClick={handleShare}
+            >
+              {copied ? 'Ссылка скопирована ✓' : 'Поделиться тестом ↗'}
+            </button>
 
-              return (
-                <button
-                  type="button"
-                  className={`take-answer ${
-                    isSelected ? 'selected' : ''
-                  }`}
-                  key={answerIndex}
-                  onClick={() => selectAnswer(answerIndex)}
-                >
-                  <span className="take-answer-letter">
-                    {String.fromCharCode(65 + answerIndex)}
-                  </span>
-
-                  <span className="take-answer-text">
-                    {answer}
-                  </span>
-
-                  <span className="take-answer-check">
-                    {isSelected ? '✓' : '↗'}
-                  </span>
-                </button>
-              )
-            })}
+            <Link to="/create" className="intro-secondary-button">
+              Создать свой тест
+            </Link>
           </div>
-        </section>
+        </div>
 
-        {error && <p className="form-error">{error}</p>}
-
-        <div className="take-test-actions">
-          <button
-            type="button"
-            className="secondary-link"
-            onClick={goBack}
-            disabled={
-              currentQuestion === 0 || submitting
-            }
-          >
-            ← Предыдущий
-          </button>
-
-          <button
-            type="button"
-            className="primary-link"
-            onClick={goNext}
-            disabled={
-              selectedAnswer === undefined || submitting
-            }
-          >
-            {submitting
-              ? 'Сохраняем...'
-              : isLastQuestion
-                ? 'Завершить тест ↗'
-                : 'Следующий вопрос ↗'}
-          </button>
+        <div className="intro-footer">
+          <span>Готов проверить свои знания?</span>
+          <span>KEZLI / 2026</span>
         </div>
       </div>
     </main>
   )
 }
 
-export default TakeTest
+export default TestIntro

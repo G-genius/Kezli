@@ -83,8 +83,26 @@ function MyTests() {
     }
   }
 
+  function formatDate(dateValue) {
+    if (!dateValue) {
+      return 'Дата неизвестна'
+    }
+
+    return new Intl.DateTimeFormat('ru-RU', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }).format(new Date(dateValue))
+  }
+
   if (loading) {
-    return <main className="page">Загрузка твоих тестов...</main>
+    return (
+      <main className="page">
+        <div className="my-tests-container">
+          <p className="my-tests-loading">Загрузка твоих тестов...</p>
+        </div>
+      </main>
+    )
   }
 
   if (error && tests.length === 0) {
@@ -102,7 +120,7 @@ function MyTests() {
       <div className="my-tests-container">
         <div className="my-tests-heading">
           <div>
-            <p className="eyebrow">KEZLI</p>
+            <p className="eyebrow">KEZLI / ACCOUNT</p>
 
             <h1>Мои тесты</h1>
 
@@ -112,27 +130,44 @@ function MyTests() {
           </div>
 
           <Link className="primary-link" to="/create">
-            Создать тест
+            Создать тест ↗
           </Link>
+        </div>
+
+        <div className="my-tests-summary">
+          <span>Всего тестов</span>
+          <strong>{tests.length}</strong>
         </div>
 
         {error && <p className="my-tests-error">{error}</p>}
 
         {tests.length === 0 ? (
           <div className="my-tests-empty">
+            <div className="my-tests-empty-icon">✦</div>
+
             <h2>У тебя пока нет тестов</h2>
 
             <p>Создай первый тест о себе и отправь его друзьям.</p>
 
             <Link className="primary-link" to="/create">
-              Создать первый тест
+              Создать первый тест ↗
             </Link>
           </div>
         ) : (
           <div className="my-tests-list">
-            {tests.map((test) => (
+            {tests.map((test, index) => (
               <article className="my-test-card" key={test.id}>
-                <div>
+                <div className="my-test-card-content">
+                  <div className="my-test-card-topline">
+                    <span className="my-test-index">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+
+                    <span className="my-test-date">
+                      {formatDate(test.created_at)}
+                    </span>
+                  </div>
+
                   <p className="my-test-author">
                     Автор: {test.creator_name}
                   </p>
@@ -145,7 +180,7 @@ function MyTests() {
                     className="secondary-link"
                     to={`/test/${test.id}`}
                   >
-                    Открыть
+                    Открыть ↗
                   </Link>
 
                   <Link

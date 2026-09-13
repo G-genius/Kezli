@@ -9,6 +9,7 @@ function TestIntro() {
   const [test, setTest] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     async function loadTest() {
@@ -35,6 +36,43 @@ function TestIntro() {
     loadTest()
   }, [id])
 
+  async function handleShare() {
+    const testUrl = window.location.href
+
+    try {
+      await navigator.clipboard.writeText(testUrl)
+      setCopied(true)
+
+      setTimeout(() => {
+        setCopied(false)
+      }, 2500)
+    } catch (shareError) {
+      console.error('Ошибка копирования ссылки:', shareError)
+
+      const textArea = document.createElement('textarea')
+      textArea.value = testUrl
+      textArea.style.position = 'fixed'
+      textArea.style.opacity = '0'
+
+      document.body.appendChild(textArea)
+      textArea.focus()
+      textArea.select()
+
+      try {
+        document.execCommand('copy')
+        setCopied(true)
+
+        setTimeout(() => {
+          setCopied(false)
+        }, 2500)
+      } catch (fallbackError) {
+        console.error('Не удалось скопировать ссылку:', fallbackError)
+      }
+
+      document.body.removeChild(textArea)
+    }
+  }
+
   if (loading) {
     return (
       <main className="page intro-page">
@@ -49,6 +87,7 @@ function TestIntro() {
         <div className="intro-error">
           <span>404</span>
           <h1>{error}</h1>
+
           <Link to="/tests" className="intro-secondary-button">
             Вернуться к тестам
           </Link>
@@ -78,6 +117,7 @@ function TestIntro() {
           <div className="intro-info">
             <div className="intro-info-item">
               <span className="intro-info-icon">✦</span>
+
               <div>
                 <strong>Личные вопросы</strong>
                 <span>Только о человеке, который создал тест</span>
@@ -86,6 +126,7 @@ function TestIntro() {
 
             <div className="intro-info-item">
               <span className="intro-info-icon">↗</span>
+
               <div>
                 <strong>Результат в конце</strong>
                 <span>Узнай, сколько ответов ты угадал</span>
@@ -101,6 +142,14 @@ function TestIntro() {
               Пройти тест
               <span>↗</span>
             </Link>
+
+            <button
+              type="button"
+              className="intro-share-button"
+              onClick={handleShare}
+            >
+              {copied ? 'Ссылка скопирована ✓' : 'Поделиться тестом ↗'}
+            </button>
 
             <Link to="/create" className="intro-secondary-button">
               Создать свой тест

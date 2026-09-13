@@ -10,7 +10,7 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 24px;
-  margin-bottom: 36px;
+  margin-bottom: 24px;
 }
 
 .my-tests-heading h1 {
@@ -29,6 +29,25 @@
   line-height: 1.6;
 }
 
+.my-tests-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding: 16px 20px;
+  border: 1px solid #3d3047;
+  border-radius: 14px;
+  background: #17111d;
+  color: #a99caf;
+  font-size: 13px;
+}
+
+.my-tests-summary strong {
+  color: #e8b7df;
+  font-size: 20px;
+}
+
 .my-tests-list {
   display: flex;
   flex-direction: column;
@@ -44,6 +63,39 @@
   border: 1px solid #3d3047;
   border-radius: 18px;
   background: #17111d;
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.my-test-card:hover {
+  border-color: #715675;
+  transform: translateY(-2px);
+}
+
+.my-test-card-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.my-test-card-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.my-test-index {
+  color: #d69dce;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.my-test-date {
+  color: #75657e;
+  font-size: 12px;
 }
 
 .my-test-author {
@@ -57,6 +109,7 @@
   color: #fff0fa;
   font-size: 21px;
   line-height: 1.3;
+  overflow-wrap: anywhere;
 }
 
 .my-test-actions {
@@ -71,11 +124,24 @@
 }
 
 .my-tests-empty {
-  padding: 48px 24px;
+  padding: 56px 24px;
   border: 1px dashed #59435e;
   border-radius: 18px;
   text-align: center;
   background: #17111d;
+}
+
+.my-tests-empty-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 20px;
+  border-radius: 14px;
+  background: #302039;
+  color: #e2a8d8;
+  font-size: 24px;
 }
 
 .my-tests-empty h2 {
@@ -90,46 +156,16 @@
   line-height: 1.6;
 }
 
+.my-tests-loading {
+  color: #a99caf;
+}
+
 .my-tests-error {
   padding: 16px;
   border: 1px solid #7d405d;
   border-radius: 12px;
   background: #351b2b;
   color: #f1b8d3;
-}
-
-@media (max-width: 700px) {
-  .my-tests-container {
-    padding: 32px 16px 56px;
-  }
-
-  .my-tests-heading {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .my-tests-heading h1 {
-    font-size: 32px;
-  }
-
-  .my-tests-heading p {
-    font-size: 14px;
-  }
-
-  .my-test-card {
-    align-items: stretch;
-    flex-direction: column;
-    padding: 20px;
-  }
-
-  .my-test-actions {
-    width: 100%;
-  }
-
-  .my-test-actions a {
-    flex: 1;
-    text-align: center;
-  }
 }
 
 .delete-test-button {
@@ -160,6 +196,40 @@
 }
 
 @media (max-width: 700px) {
+  .my-tests-container {
+    padding: 32px 16px 56px;
+  }
+
+  .my-tests-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .my-tests-heading h1 {
+    font-size: 32px;
+  }
+
+  .my-tests-heading p {
+    font-size: 14px;
+  }
+
+  .my-test-card {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 20px;
+  }
+
+  .my-test-card-topline {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .my-test-actions {
+    width: 100%;
+  }
+
+  .my-test-actions a,
   .delete-test-button {
     flex: 1;
     text-align: center;

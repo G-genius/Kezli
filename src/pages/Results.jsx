@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import './Results.css'
 
 function Results() {
   const { id } = useParams()
@@ -34,7 +35,7 @@ function Results() {
         }
 
         setTest(testData)
-        setResults(resultsData)
+        setResults(resultsData || [])
       } catch (loadError) {
         console.error('Ошибка загрузки результатов:', loadError)
         setError('Не удалось загрузить результаты')

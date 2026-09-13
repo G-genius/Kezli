@@ -137,7 +137,6 @@ function Result() {
             >
               <div className="result-circle-inner">
                 <strong>{percentage}%</strong>
-
                 <span>правильных</span>
               </div>
             </div>
@@ -162,7 +161,6 @@ function Result() {
 
           <div className="result-progress-caption">
             <span>0 правильных</span>
-
             <span>{total} вопросов</span>
           </div>
         </section>

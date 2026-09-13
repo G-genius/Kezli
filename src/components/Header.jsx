@@ -60,6 +60,15 @@ function Header() {
             Создать тест
           </NavLink>
 
+          {user && (
+            <NavLink
+              to="/my-tests"
+              className={({ isActive }) => (isActive ? 'active' : '')}
+            >
+              Мои тесты
+            </NavLink>
+          )}
+
           {user ? (
             <button
               type="button"

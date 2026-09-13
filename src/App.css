@@ -1453,3 +1453,255 @@ select:focus {
     width: 100%;
   }
 }
+
+.take-test-container {
+  width: min(100%, 820px);
+  margin: 0 auto;
+  padding: 64px 24px 100px;
+}
+
+.take-test-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 56px;
+}
+
+.back-button {
+  border: 0;
+  background: transparent;
+  color: #a1a1aa;
+  font: inherit;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.back-button:hover {
+  color: #f5d0fe;
+}
+
+.take-test-counter {
+  color: #d8a4cf;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.take-test-heading {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.take-test-heading h1 {
+  max-width: 680px;
+  margin: 16px auto;
+  color: #faf5ff;
+  font-size: clamp(32px, 5vw, 56px);
+  line-height: 1.05;
+  letter-spacing: -0.05em;
+}
+
+.take-test-heading p:last-child {
+  color: #a1a1aa;
+  font-size: 16px;
+}
+
+.take-test-heading strong {
+  color: #e9a8d4;
+}
+
+.test-progress {
+  width: 100%;
+  height: 5px;
+  margin-bottom: 32px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #2a2030;
+}
+
+.test-progress-bar {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #d99bcf, #9d7bea);
+  transition: width 0.3s ease;
+}
+
+.take-test-card {
+  padding: 40px;
+  border: 1px solid #49334d;
+  border-radius: 24px;
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(214, 146, 202, 0.09),
+      transparent 34%
+    ),
+    #17121d;
+}
+
+.question-number {
+  margin-bottom: 24px;
+  color: #d9a4cf;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.take-test-card h2 {
+  margin: 0 0 32px;
+  color: #faf5ff;
+  font-size: clamp(26px, 4vw, 42px);
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+}
+
+.take-answers {
+  display: grid;
+  gap: 12px;
+}
+
+.take-answer {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  min-height: 72px;
+  padding: 14px 18px;
+  border: 1px solid #3c2d43;
+  border-radius: 14px;
+  background: #211925;
+  color: #d8cbdc;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.take-answer:hover {
+  border-color: #b879ae;
+  background: #2b2031;
+  transform: translateY(-1px);
+}
+
+.take-answer.selected {
+  border-color: #d99bcf;
+  background: linear-gradient(
+    90deg,
+    rgba(217, 155, 207, 0.2),
+    rgba(157, 123, 234, 0.16)
+  );
+  color: #ffffff;
+}
+
+.take-answer-letter {
+  display: grid;
+  place-items: center;
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  border: 1px solid #59415f;
+  border-radius: 10px;
+  color: #d9a4cf;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.take-answer.selected .take-answer-letter {
+  border-color: #d99bcf;
+  background: #d99bcf;
+  color: #241626;
+}
+
+.take-answer-text {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.take-answer-check {
+  color: #8e718e;
+  font-size: 22px;
+}
+
+.take-answer.selected .take-answer-check {
+  color: #f3b8e3;
+}
+
+.take-test-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.take-test-actions button {
+  min-height: 52px;
+}
+
+.take-test-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.loading-text {
+  color: #b8a7bb;
+  text-align: center;
+}
+
+.error-state {
+  padding: 32px;
+  border: 1px solid #713f46;
+  border-radius: 16px;
+  background: #29171f;
+  color: #fecaca;
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  .take-test-container {
+    padding: 32px 16px 64px;
+  }
+
+  .take-test-top {
+    margin-bottom: 36px;
+  }
+
+  .take-test-heading h1 {
+    font-size: 36px;
+  }
+
+  .take-test-card {
+    padding: 24px 18px;
+    border-radius: 18px;
+  }
+
+  .take-test-card h2 {
+    font-size: 28px;
+  }
+
+  .take-answer {
+    min-height: 64px;
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .take-answer-letter {
+    flex-basis: 34px;
+    width: 34px;
+    height: 34px;
+  }
+
+  .take-test-actions {
+    flex-direction: column-reverse;
+  }
+
+  .take-test-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+}

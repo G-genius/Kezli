@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import './Result.css'
 
 function Result() {
   const { id } = useParams()
@@ -11,18 +12,20 @@ function Result() {
 
   const [test, setTest] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     async function loadTest() {
-      const { data, error } = await supabase
+      const { data, error: testError } = await supabase
         .from('tests')
         .select('*')
         .eq('id', id)
         .single()
 
-      if (error) {
-        console.error('Ошибка загрузки теста:', error)
+      if (testError) {
+        console.error('Ошибка загрузки теста:', testError)
+        setError('Не удалось загрузить результат')
       } else {
         setTest(data)
       }
@@ -43,67 +46,126 @@ function Result() {
       setTimeout(() => {
         setCopied(false)
       }, 2000)
-    } catch (error) {
-      console.error('Не удалось скопировать ссылку:', error)
+    } catch (copyError) {
+      console.error('Не удалось скопировать ссылку:', copyError)
+      setError('Не удалось скопировать ссылку')
     }
   }
 
   if (loading) {
-    return <main className="page">Загрузка результата...</main>
+    return (
+      <main className="page result-page">
+        <div className="result-loading">
+          Загрузка результата...
+        </div>
+      </main>
+    )
   }
 
-  if (!test) {
-    return <main className="page">Тест не найден</main>
+  if (error || !test) {
+    return (
+      <main className="page result-page">
+        <div className="result-error">
+          {error || 'Тест не найден'}
+        </div>
+
+        <Link className="result-button secondary" to="/">
+          Вернуться на главную
+        </Link>
+      </main>
+    )
   }
 
-  const percentage = total > 0 ? Math.round((score / total) * 100) : 0
+  const percentage =
+    total > 0 ? Math.round((score / total) * 100) : 0
 
-  let message = 'Попробуй ещё раз!'
+  let message = 'Попробуй ещё раз'
 
   if (percentage === 100) {
     message = 'Идеальный результат!'
   } else if (percentage >= 70) {
-    message = 'Очень хороший результат!'
+    message = 'Ты очень хорошо знаешь этого человека!'
   } else if (percentage >= 40) {
-    message = 'Неплохо, но можно лучше!'
+    message = 'Неплохой результат, но есть куда расти'
+  } else {
+    message = 'Похоже, нужно узнать друг друга получше'
   }
 
   return (
-    <main className="page">
-      <div className="test-container">
-        <p>Тест от: {test.creator_name}</p>
-
-        <h1>{test.title}</h1>
-
-        <div className="result-card">
-          <p>Твой результат</p>
-
-          <h2>
-            {score} из {total}
-          </h2>
-
-          <p>{percentage}% правильных ответов</p>
-
-          <p>{message}</p>
+    <main className="page result-page">
+      <div className="result-container">
+        <div className="result-topline">
+          <span className="result-label">KEZLI / RESULT</span>
+          <span className="result-status">Тест завершён</span>
         </div>
+
+        <div className="result-heading">
+          <p className="result-creator">
+            Тест от <strong>{test.creator_name}</strong>
+          </p>
+
+          <h1>{test.title}</h1>
+
+          <p className="result-subtitle">
+            Вот насколько хорошо ты знаешь этого человека.
+          </p>
+        </div>
+
+        <section className="result-card">
+          <div className="result-card-header">
+            <span>Твой результат</span>
+            <span>{percentage}%</span>
+          </div>
+
+          <div className="result-score">
+            <strong>{score}</strong>
+            <span>из {total}</span>
+          </div>
+
+          <div className="result-progress">
+            <div
+              className="result-progress-fill"
+              style={{ width: `${percentage}%` }}
+            />
+          </div>
+
+          <div className="result-message">
+            <h2>{message}</h2>
+
+            <p>
+              Ты ответил правильно на {score} из {total} вопросов.
+            </p>
+          </div>
+        </section>
 
         <div className="result-actions">
-          <button type="button" onClick={copyTestLink}>
+          <button
+            type="button"
+            className="result-button primary"
+            onClick={copyTestLink}
+          >
             {copied ? 'Ссылка скопирована' : 'Поделиться тестом'}
+            <span>↗</span>
           </button>
 
-          <Link to={`/test/${id}`}>
-            Пройти тест ещё раз
+          <Link
+            className="result-button secondary"
+            to={`/test/${id}`}
+          >
+            Пройти ещё раз
           </Link>
 
-          <Link to="/create">
+          <Link
+            className="result-button secondary"
+            to="/create"
+          >
             Создать свой тест
           </Link>
-
-          <Link to="/">
-            На главную
-          </Link>
         </div>
+
+        <Link className="result-back-link" to="/">
+          ← Вернуться на главную
+        </Link>
       </div>
     </main>
   )

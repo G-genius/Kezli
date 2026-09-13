@@ -8,43 +8,44 @@ function TakeTest() {
 
   const [test, setTest] = useState(null)
   const [questions, setQuestions] = useState([])
-  const [answers, setAnswers] = useState({})
   const [currentQuestion, setCurrentQuestion] = useState(0)
+  const [answers, setAnswers] = useState({})
   const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
     async function loadTest() {
-      try {
-        const { data: testData, error: testError } = await supabase
-          .from('tests')
-          .select('*')
-          .eq('id', id)
-          .single()
+      const { data: testData, error: testError } = await supabase
+        .from('tests')
+        .select('*')
+        .eq('id', id)
+        .single()
 
-        if (testError) {
-          throw testError
-        }
-
-        const { data: questionsData, error: questionsError } =
-          await supabase
-            .from('questions')
-            .select('*')
-            .eq('test_id', id)
-            .order('id')
-
-        if (questionsError) {
-          throw questionsError
-        }
-
-        setTest(testData)
-        setQuestions(questionsData)
-      } catch (loadError) {
-        console.error('Ошибка загрузки теста:', loadError)
+      if (testError) {
+        console.error('Ошибка загрузки теста:', testError)
         setError('Не удалось загрузить тест')
-      } finally {
         setLoading(false)
+        return
       }
+
+      const { data: questionsData, error: questionsError } =
+        await supabase
+          .from('questions')
+          .select('*')
+          .eq('test_id', id)
+          .order('id', { ascending: true })
+
+      if (questionsError) {
+        console.error('Ошибка загрузки вопросов:', questionsError)
+        setError('Не удалось загрузить вопросы')
+        setLoading(false)
+        return
+      }
+
+      setTest(testData)
+      setQuestions(questionsData || [])
+      setLoading(false)
     }
 
     loadTest()
@@ -57,13 +58,16 @@ function TakeTest() {
     }))
   }
 
-  function goBack() {
-    setCurrentQuestion((current) => Math.max(current - 1, 0))
-  }
-
   async function finishTest() {
+    setSubmitting(true)
+    setError('')
+
     const score = questions.reduce((total, question, index) => {
-      return total + (answers[index] === question.correct ? 1 : 0)
+      if (answers[index] === question.correct) {
+        return total + 1
+      }
+
+      return total
     }, 0)
 
     const { error: resultError } = await supabase
@@ -76,92 +80,165 @@ function TakeTest() {
 
     if (resultError) {
       console.error('Ошибка сохранения результата:', resultError)
+
+      setError(
+        resultError.message || 'Не удалось сохранить результат'
+      )
+
+      setSubmitting(false)
+      return
     }
 
-    navigate(`/result/${id}?score=${score}&total=${questions.length}`)
+    navigate(
+      `/result/${id}?score=${score}&total=${questions.length}`
+    )
+  }
+
+  function goNext() {
+    if (currentQuestion === questions.length - 1) {
+      finishTest()
+      return
+    }
+
+    setCurrentQuestion((current) => current + 1)
+  }
+
+  function goBack() {
+    setCurrentQuestion((current) => Math.max(current - 1, 0))
   }
 
   if (loading) {
-    return <main className="page">Загрузка теста...</main>
+    return (
+      <main className="page">
+        <div className="take-test-container">
+          <p className="loading-text">Загрузка теста...</p>
+        </div>
+      </main>
+    )
   }
 
-  if (error) {
-    return <main className="page">{error}</main>
-  }
-
-  if (!test || questions.length === 0) {
-    return <main className="page">В этом тесте пока нет вопросов</main>
+  if (error || !test || questions.length === 0) {
+    return (
+      <main className="page">
+        <div className="take-test-container">
+          <div className="error-state">
+            <p>
+              {error || 'В этом тесте пока нет вопросов'}
+            </p>
+          </div>
+        </div>
+      </main>
+    )
   }
 
   const question = questions[currentQuestion]
   const selectedAnswer = answers[currentQuestion]
-  const isLastQuestion = currentQuestion === questions.length - 1
-  const progress = ((currentQuestion + 1) / questions.length) * 100
+  const progress =
+    ((currentQuestion + 1) / questions.length) * 100
+  const isLastQuestion =
+    currentQuestion === questions.length - 1
 
   return (
     <main className="page">
-      <div className="test-container">
-        <p className="eyebrow">Тест от {test.creator_name}</p>
-
-        <h1>{test.title}</h1>
-
-        <div className="progress-info">
-          <div className="question-counter">
-            <span>Вопрос {currentQuestion + 1}</span>
-            <span>{questions.length}</span>
-          </div>
-
-          <div className="progress-bar">
-            <div
-              className="progress-fill"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-        </div>
-
-        <div className="question-card">
-          <h2>{question.question}</h2>
-
-          <div className="answers">
-            {question.answers.map((answer, index) => (
-              <button
-                key={index}
-                type="button"
-                className={selectedAnswer === index ? 'selected' : ''}
-                onClick={() => selectAnswer(index)}
-              >
-                <span className="answer-number">
-                  {String.fromCharCode(65 + index)}
-                </span>
-
-                <span>{answer}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="question-actions">
+      <div className="take-test-container">
+        <div className="take-test-top">
           <button
             type="button"
             className="back-button"
-            disabled={currentQuestion === 0}
-            onClick={goBack}
+            onClick={() => navigate(`/test/${id}`)}
           >
-            Назад
+            ← Назад
+          </button>
+
+          <span className="take-test-counter">
+            {String(currentQuestion + 1).padStart(2, '0')} /{' '}
+            {String(questions.length).padStart(2, '0')}
+          </span>
+        </div>
+
+        <div className="take-test-heading">
+          <p className="eyebrow">KEZLI / TEST</p>
+
+          <h1>{test.title}</h1>
+
+          <p>
+            Тест от <strong>{test.creator_name}</strong>
+          </p>
+        </div>
+
+        <div className="test-progress">
+          <div
+            className="test-progress-bar"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+
+        <section className="take-test-card">
+          <div className="question-number">
+            ВОПРОС{' '}
+            {String(currentQuestion + 1).padStart(2, '0')}
+          </div>
+
+          <h2>{question.question}</h2>
+
+          <div className="take-answers">
+            {question.answers.map((answer, answerIndex) => {
+              const isSelected =
+                selectedAnswer === answerIndex
+
+              return (
+                <button
+                  type="button"
+                  className={`take-answer ${
+                    isSelected ? 'selected' : ''
+                  }`}
+                  key={answerIndex}
+                  onClick={() => selectAnswer(answerIndex)}
+                >
+                  <span className="take-answer-letter">
+                    {String.fromCharCode(65 + answerIndex)}
+                  </span>
+
+                  <span className="take-answer-text">
+                    {answer}
+                  </span>
+
+                  <span className="take-answer-check">
+                    {isSelected ? '✓' : '↗'}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        </section>
+
+        {error && <p className="form-error">{error}</p>}
+
+        <div className="take-test-actions">
+          <button
+            type="button"
+            className="secondary-link"
+            onClick={goBack}
+            disabled={
+              currentQuestion === 0 || submitting
+            }
+          >
+            ← Предыдущий
           </button>
 
           <button
             type="button"
-            disabled={selectedAnswer === undefined}
-            onClick={() => {
-              if (isLastQuestion) {
-                finishTest()
-              } else {
-                setCurrentQuestion((current) => current + 1)
-              }
-            }}
+            className="primary-link"
+            onClick={goNext}
+            disabled={
+              selectedAnswer === undefined || submitting
+            }
           >
-            {isLastQuestion ? 'Завершить тест' : 'Следующий вопрос'}
+            {submitting
+              ? 'Сохраняем...'
+              : isLastQuestion
+                ? 'Завершить тест ↗'
+                : 'Следующий вопрос ↗'}
           </button>
         </div>
       </div>

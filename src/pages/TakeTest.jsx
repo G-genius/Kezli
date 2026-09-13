@@ -57,6 +57,10 @@ function TakeTest() {
     }))
   }
 
+  function goBack() {
+    setCurrentQuestion((current) => Math.max(current - 1, 0))
+  }
+
   async function finishTest() {
     const score = questions.reduce((total, question, index) => {
       return total + (answers[index] === question.correct ? 1 : 0)
@@ -92,20 +96,20 @@ function TakeTest() {
   const question = questions[currentQuestion]
   const selectedAnswer = answers[currentQuestion]
   const isLastQuestion = currentQuestion === questions.length - 1
-
   const progress = ((currentQuestion + 1) / questions.length) * 100
 
   return (
     <main className="page">
       <div className="test-container">
-        <p>Тест от: {test.creator_name}</p>
+        <p className="eyebrow">Тест от {test.creator_name}</p>
 
         <h1>{test.title}</h1>
 
         <div className="progress-info">
-          <p>
-            Вопрос {currentQuestion + 1} из {questions.length}
-          </p>
+          <div className="question-counter">
+            <span>Вопрос {currentQuestion + 1}</span>
+            <span>{questions.length}</span>
+          </div>
 
           <div className="progress-bar">
             <div
@@ -115,34 +119,51 @@ function TakeTest() {
           </div>
         </div>
 
-        <h2>{question.question}</h2>
+        <div className="question-card">
+          <h2>{question.question}</h2>
 
-        <div className="answers">
-          {question.answers.map((answer, index) => (
-            <button
-              key={index}
-              type="button"
-              className={selectedAnswer === index ? 'selected' : ''}
-              onClick={() => selectAnswer(index)}
-            >
-              {answer}
-            </button>
-          ))}
+          <div className="answers">
+            {question.answers.map((answer, index) => (
+              <button
+                key={index}
+                type="button"
+                className={selectedAnswer === index ? 'selected' : ''}
+                onClick={() => selectAnswer(index)}
+              >
+                <span className="answer-number">
+                  {String.fromCharCode(65 + index)}
+                </span>
+
+                <span>{answer}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
-        <button
-          type="button"
-          disabled={selectedAnswer === undefined}
-          onClick={() => {
-            if (isLastQuestion) {
-              finishTest()
-            } else {
-              setCurrentQuestion((current) => current + 1)
-            }
-          }}
-        >
-          {isLastQuestion ? 'Завершить тест' : 'Следующий вопрос'}
-        </button>
+        <div className="question-actions">
+          <button
+            type="button"
+            className="back-button"
+            disabled={currentQuestion === 0}
+            onClick={goBack}
+          >
+            Назад
+          </button>
+
+          <button
+            type="button"
+            disabled={selectedAnswer === undefined}
+            onClick={() => {
+              if (isLastQuestion) {
+                finishTest()
+              } else {
+                setCurrentQuestion((current) => current + 1)
+              }
+            }}
+          >
+            {isLastQuestion ? 'Завершить тест' : 'Следующий вопрос'}
+          </button>
+        </div>
       </div>
     </main>
   )

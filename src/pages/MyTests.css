@@ -1,0 +1,133 @@
+.my-tests-container {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+}
+
+.my-tests-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 36px;
+}
+
+.my-tests-heading h1 {
+  margin: 0 0 14px;
+  color: #fff0fa;
+  font-size: 42px;
+  line-height: 1.1;
+  letter-spacing: -1px;
+}
+
+.my-tests-heading p {
+  max-width: 600px;
+  margin: 0;
+  color: #a99caf;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.my-tests-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.my-test-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px;
+  border: 1px solid #3d3047;
+  border-radius: 18px;
+  background: #17111d;
+}
+
+.my-test-author {
+  margin: 0 0 8px;
+  color: #a98eb4;
+  font-size: 13px;
+}
+
+.my-test-card h2 {
+  margin: 0;
+  color: #fff0fa;
+  font-size: 21px;
+  line-height: 1.3;
+}
+
+.my-test-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.my-test-actions a {
+  text-decoration: none;
+}
+
+.my-tests-empty {
+  padding: 48px 24px;
+  border: 1px dashed #59435e;
+  border-radius: 18px;
+  text-align: center;
+  background: #17111d;
+}
+
+.my-tests-empty h2 {
+  margin: 0 0 12px;
+  color: #fff0fa;
+  font-size: 24px;
+}
+
+.my-tests-empty p {
+  margin: 0 0 24px;
+  color: #a99caf;
+  line-height: 1.6;
+}
+
+.my-tests-error {
+  padding: 16px;
+  border: 1px solid #7d405d;
+  border-radius: 12px;
+  background: #351b2b;
+  color: #f1b8d3;
+}
+
+@media (max-width: 700px) {
+  .my-tests-container {
+    padding: 32px 16px 56px;
+  }
+
+  .my-tests-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .my-tests-heading h1 {
+    font-size: 32px;
+  }
+
+  .my-tests-heading p {
+    font-size: 14px;
+  }
+
+  .my-test-card {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 20px;
+  }
+
+  .my-test-actions {
+    width: 100%;
+  }
+
+  .my-test-actions a {
+    flex: 1;
+    text-align: center;
+  }
+}

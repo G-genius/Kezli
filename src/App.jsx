@@ -15,6 +15,7 @@ import Results from './pages/Results'
 import Tests from './pages/Tests'
 import Header from './components/Header'
 import Auth from './pages/Auth'
+import MyTests from './pages/MyTests'
 
 import './App.css'
 
@@ -48,6 +49,7 @@ function App() {
         <Route path="/result/:id" element={<Result />} />
         <Route path="/results/:id" element={<Results />} />
         <Route path="/auth" element={<Auth />} />
+        <Route path="/my-tests" element={<MyTests />} />
       </Routes>
     </BrowserRouter>
   )

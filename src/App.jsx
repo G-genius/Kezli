@@ -16,6 +16,7 @@ import Tests from './pages/Tests'
 import Auth from './pages/Auth'
 import MyTests from './pages/MyTests'
 import Header from './components/Header'
+import ProtectedRoute from './components/ProtectedRoute'
 
 import './App.css'
 
@@ -42,14 +43,36 @@ function App() {
 
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/create" element={<CreateTest />} />
+
+        <Route
+          path="/create"
+          element={
+            <ProtectedRoute>
+              <CreateTest />
+            </ProtectedRoute>
+          }
+        />
+
         <Route path="/tests" element={<Tests />} />
+
         <Route path="/test/:id" element={<TestIntro />} />
+
         <Route path="/test/:id/questions" element={<TakeTest />} />
+
         <Route path="/result/:id" element={<Result />} />
+
         <Route path="/results/:id" element={<Results />} />
+
         <Route path="/auth" element={<Auth />} />
-        <Route path="/my-tests" element={<MyTests />} />
+
+        <Route
+          path="/my-tests"
+          element={
+            <ProtectedRoute>
+              <MyTests />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   )

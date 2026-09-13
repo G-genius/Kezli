@@ -1,95 +1,91 @@
-import { Link, useSearchParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { supabase } from '../lib/supabase'
 
 function Result() {
+  const { id } = useParams()
   const [searchParams] = useSearchParams()
 
-  const score = Number(searchParams.get('score')) || 0
+  const score = Number(searchParams.get('score') || 0)
+  const total = Number(searchParams.get('total') || 0)
 
-  const total = 3
+  const [test, setTest] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
-  const percentage = Math.round(
-    (score / total) * 100
-  )
+  useEffect(() => {
+    async function loadTest() {
+      try {
+        const { data, error: testError } = await supabase
+          .from('tests')
+          .select('*')
+          .eq('id', id)
+          .single()
 
-  let message = 'Можно было и лучше 😅'
+        if (testError) {
+          throw testError
+        }
 
-  if (percentage >= 80) {
-    message = '🔥 Ты действительно хорошо меня знаешь!'
-  } else if (percentage >= 50) {
-    message = '😎 Неплохо, но есть куда расти!'
+        setTest(data)
+      } catch (loadError) {
+        console.error('Ошибка загрузки результата:', loadError)
+        setError('Не удалось загрузить информацию о тесте')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadTest()
+  }, [id])
+
+  if (loading) {
+    return <main className="page">Загрузка результата...</main>
+  }
+
+  if (error) {
+    return <main className="page">{error}</main>
+  }
+
+  const percent = total > 0 ? Math.round((score / total) * 100) : 0
+
+  let message = 'Можно лучше 😅'
+
+  if (percent === 100) {
+    message = 'Ты знаешь меня идеально! 🔥'
+  } else if (percent >= 70) {
+    message = 'Очень хороший результат! 😎'
+  } else if (percent >= 40) {
+    message = 'Неплохо, но есть куда расти 🙂'
   }
 
   return (
-    <div className="create-page">
-      <div className="create-container">
+    <main className="page">
+      <div className="result-container">
+        <p>Тест от: {test?.creator_name}</p>
 
-        <div className="small-logo">
-          KEZLI
+        <h1>{test?.title}</h1>
+
+        <h2>Твой результат</h2>
+
+        <div className="result-score">
+          {score} из {total}
         </div>
 
-        <div
-          className="question-card"
-          style={{
-            textAlign: 'center',
-            padding: '50px 25px',
-          }}
-        >
-
-          <div
-            style={{
-              fontSize: '14px',
-              color: '#a78bfa',
-              fontWeight: '700',
-              letterSpacing: '1px',
-            }}
-          >
-            ТЕСТ ЗАВЕРШЁН
-          </div>
-
-          <h1
-            style={{
-              fontSize: '80px',
-              margin: '20px 0 10px',
-            }}
-          >
-            {percentage}%
-          </h1>
-
-          <p
-            style={{
-              color: '#9999a5',
-              fontSize: '18px',
-            }}
-          >
-            {score} из {total} правильных ответов
-          </p>
-
-          <div
-            style={{
-              marginTop: '30px',
-              fontSize: '18px',
-            }}
-          >
-            {message}
-          </div>
-
-          <Link
-            to="/"
-            className="create-button"
-            style={{
-              marginTop: '35px',
-              justifyContent: 'center',
-              textDecoration: 'none',
-            }}
-          >
-            Создать свой тест
-            <span>→</span>
-          </Link>
-
+        <div className="result-percent">
+          {percent}%
         </div>
 
+        <p>{message}</p>
+
+        <Link to="/create" className="result-button">
+          Создать свой тест
+        </Link>
+
+        <Link to="/" className="result-link">
+          На главную
+        </Link>
       </div>
-    </div>
+    </main>
   )
 }
 

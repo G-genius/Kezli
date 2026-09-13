@@ -24,7 +24,10 @@ function CreateTest() {
     setQuestions((currentQuestions) =>
       currentQuestions.map((question, index) =>
         index === questionIndex
-          ? { ...question, question: value }
+          ? {
+              ...question,
+              question: value,
+            }
           : question
       )
     )
@@ -51,7 +54,10 @@ function CreateTest() {
     setQuestions((currentQuestions) =>
       currentQuestions.map((question, index) =>
         index === questionIndex
-          ? { ...question, correct: answerIndex }
+          ? {
+              ...question,
+              correct: answerIndex,
+            }
           : question
       )
     )
@@ -144,45 +150,70 @@ function CreateTest() {
 
           <p>
             Придумай вопросы о себе и проверь, насколько хорошо тебя знают
-            друзья.
+            друзья или любимый человек.
           </p>
         </div>
 
         <form className="create-form" onSubmit={handleSubmit}>
-          <label>
-            Твоё имя
-            <input
-              type="text"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              placeholder="Например, Виталий"
-            />
-          </label>
+          <div className="form-section">
+            <div className="form-section-heading">
+              <span className="form-section-number">01</span>
 
-          <label>
-            Название теста
-            <input
-              type="text"
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-              placeholder="Насколько хорошо ты меня знаешь?"
-            />
-          </label>
-
-          <div className="questions-heading">
-            <div>
-              <h2>Вопросы</h2>
-              <p>Добавь минимум один вопрос.</p>
+              <div>
+                <h2>Основная информация</h2>
+                <p>Расскажи, чей это будет тест.</p>
+              </div>
             </div>
 
-            <span>{questions.length} шт.</span>
+            <div className="form-fields">
+              <label>
+                Твоё имя
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(event) => setName(event.target.value)}
+                  placeholder="Например, Виталий"
+                />
+              </label>
+
+              <label>
+                Название теста
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(event) => setTitle(event.target.value)}
+                  placeholder="Насколько хорошо ты меня знаешь?"
+                />
+              </label>
+            </div>
+          </div>
+
+          <div className="questions-heading">
+            <div className="form-section-heading">
+              <span className="form-section-number">02</span>
+
+              <div>
+                <h2>Вопросы</h2>
+                <p>У каждого вопроса должно быть четыре варианта ответа.</p>
+              </div>
+            </div>
+
+            <span className="questions-count">
+              {questions.length} шт.
+            </span>
           </div>
 
           <div className="questions-list">
             {questions.map((question, questionIndex) => (
               <section className="question-form-card" key={questionIndex}>
                 <div className="question-form-header">
-                  <h3>Вопрос {questionIndex + 1}</h3>
+                  <div>
+                    <span className="question-label">
+                      Вопрос {String(questionIndex + 1).padStart(2, '0')}
+                    </span>
+
+                    <h3>Проверь своих друзей</h3>
+                  </div>
 
                   <button
                     type="button"
@@ -206,48 +237,67 @@ function CreateTest() {
                   />
                 </label>
 
+                <div className="answers-heading">
+                  <div>
+                    <h4>Варианты ответа</h4>
+                    <p>Нажми на галочку рядом с правильным ответом.</p>
+                  </div>
+
+                  <span>✓ Верный</span>
+                </div>
+
                 <div className="answers-form">
-                  {question.answers.map((answer, answerIndex) => (
-                    <div className="answer-row" key={answerIndex}>
-                      <label className="answer-input-label">
-                        <span>Вариант {answerIndex + 1}</span>
+                  {question.answers.map((answer, answerIndex) => {
+                    const isCorrect = question.correct === answerIndex
 
-                        <input
-                          type="text"
-                          value={answer}
-                          onChange={(event) =>
-                            updateAnswer(
-                              questionIndex,
-                              answerIndex,
-                              event.target.value
-                            )
+                    return (
+                      <div className="answer-row" key={answerIndex}>
+                        <label className="answer-input-label">
+                          <span>
+                            Вариант {String(answerIndex + 1).padStart(2, '0')}
+                          </span>
+
+                          <input
+                            type="text"
+                            value={answer}
+                            onChange={(event) =>
+                              updateAnswer(
+                                questionIndex,
+                                answerIndex,
+                                event.target.value
+                              )
+                            }
+                            placeholder={`Вариант ${answerIndex + 1}`}
+                          />
+                        </label>
+
+                        <label
+                          className={`correct-answer-checkbox ${
+                            isCorrect ? 'selected' : ''
+                          }`}
+                          title={
+                            isCorrect
+                              ? 'Правильный ответ выбран'
+                              : 'Выбрать правильным'
                           }
-                          placeholder={`Вариант ${answerIndex + 1}`}
-                        />
-                      </label>
+                        >
+                          <input
+                            type="radio"
+                            name={`correct-answer-${questionIndex}`}
+                            checked={isCorrect}
+                            onChange={() =>
+                              updateCorrectAnswer(
+                                questionIndex,
+                                answerIndex
+                              )
+                            }
+                          />
 
-                      <label
-                        className={`correct-answer-checkbox ${
-                          question.correct === answerIndex ? 'selected' : ''
-                        }`}
-                        title="Сделать правильным ответом"
-                      >
-                        <input
-                          type="radio"
-                          name={`correct-answer-${questionIndex}`}
-                          checked={question.correct === answerIndex}
-                          onChange={() =>
-                            updateCorrectAnswer(
-                              questionIndex,
-                              answerIndex
-                            )
-                          }
-                        />
-
-                        <span>✓</span>
-                      </label>
-                    </div>
-                  ))}
+                          <span>✓</span>
+                        </label>
+                      </div>
+                    )
+                  })}
                 </div>
               </section>
             ))}
@@ -258,13 +308,15 @@ function CreateTest() {
             className="add-question-button"
             onClick={addQuestion}
           >
-            + Добавить вопрос
+            <span>+</span>
+            Добавить ещё вопрос
           </button>
 
           {error && <p className="form-error">{error}</p>}
 
-          <button type="submit" disabled={loading}>
+          <button type="submit" className="create-submit-button" disabled={loading}>
             {loading ? 'Создание...' : 'Создать тест'}
+            {!loading && <span>↗</span>}
           </button>
         </form>
       </div>

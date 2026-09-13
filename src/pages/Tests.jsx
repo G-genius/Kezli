@@ -1,13 +1,21 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import './Tests.css'
+
+function formatDate(date) {
+  return new Date(date).toLocaleDateString('ru-RU', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
+}
 
 function Tests() {
   const [tests, setTests] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [deletingId, setDeletingId] = useState(null)
-  const [copiedId, setCopiedId] = useState(null)
 
   useEffect(() => {
     async function loadTests() {
@@ -20,7 +28,7 @@ function Tests() {
         console.error('Ошибка загрузки тестов:', testsError)
         setError('Не удалось загрузить тесты')
       } else {
-        setTests(data)
+        setTests(data || [])
       }
 
       setLoading(false)
@@ -29,33 +37,9 @@ function Tests() {
     loadTests()
   }, [])
 
-  function formatDate(date) {
-    return new Date(date).toLocaleDateString('ru-RU', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    })
-  }
-
-  async function shareTest(testId) {
-    const shareUrl = `${window.location.origin}/test/${testId}`
-
-    try {
-      await navigator.clipboard.writeText(shareUrl)
-      setCopiedId(testId)
-
-      setTimeout(() => {
-        setCopiedId(null)
-      }, 2000)
-    } catch (shareError) {
-      console.error('Ошибка копирования ссылки:', shareError)
-      setError('Не удалось скопировать ссылку')
-    }
-  }
-
   async function deleteTest(testId) {
     const confirmed = window.confirm(
-      'Удалить этот тест? Все результаты и вопросы этого теста тоже будут удалены.'
+      'Удалить этот тест? Все вопросы и результаты тоже будут удалены.'
     )
 
     if (!confirmed) {
@@ -85,68 +69,88 @@ function Tests() {
   }
 
   if (loading) {
-    return <main className="page">Загрузка тестов...</main>
+    return (
+      <main className="page">
+        <div className="tests-container">
+          <div className="loading-state">Загрузка тестов...</div>
+        </div>
+      </main>
+    )
   }
 
   return (
     <main className="page">
-      <div className="test-container">
-        <div className="page-header">
+      <div className="tests-container">
+        <section className="tests-page-heading">
           <div>
-            <p className="eyebrow">KEZLI</p>
+            <p className="eyebrow">KEZLI / DISCOVER</p>
 
             <h1>Все тесты</h1>
 
             <p>
-              Выбирай тест и проверяй, насколько хорошо ты знаешь друзей.
+              Проверь, насколько хорошо ты знаешь друзей, любимого человека
+              или самого себя.
             </p>
           </div>
 
           <Link className="primary-link" to="/create">
-            Создать тест
+            Создать тест <span>↗</span>
           </Link>
-        </div>
+        </section>
 
         {error && <div className="error-message">{error}</div>}
 
         {tests.length === 0 ? (
-          <div className="empty-state">
+          <section className="empty-state">
+            <div className="empty-state-icon">♡</div>
+
             <h2>Пока нет тестов</h2>
 
-            <p>Создай первый тест и поделись им с друзьями.</p>
+            <p>
+              Создай первый тест и отправь его друзьям, чтобы узнать,
+              насколько хорошо они тебя знают.
+            </p>
 
             <Link className="primary-link" to="/create">
-              Создать первый тест
+              Создать первый тест <span>↗</span>
             </Link>
-          </div>
+          </section>
         ) : (
           <div className="tests-list">
-            {tests.map((test) => (
+            {tests.map((test, index) => (
               <article className="test-card" key={test.id}>
                 <div className="test-card-top">
-                  <span className="test-card-label">Тест от</span>
+                  <span className="test-card-number">
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
 
                   <span className="test-card-date">
                     {formatDate(test.created_at)}
                   </span>
                 </div>
 
-                <h2>{test.title}</h2>
+                <div className="test-card-content">
+                  <p className="test-card-author">
+                    Тест от <strong>{test.creator_name}</strong>
+                  </p>
 
-                <p className="test-card-author">{test.creator_name}</p>
+                  <h2>{test.title}</h2>
+                </div>
 
                 <div className="test-card-actions">
-                  <Link to={`/test/${test.id}`}>Пройти тест</Link>
-
-                  <Link to={`/results/${test.id}`}>Результаты</Link>
-
-                  <button
-                    type="button"
-                    className="share-button"
-                    onClick={() => shareTest(test.id)}
+                  <Link
+                    className="test-card-main-action"
+                    to={`/test/${test.id}`}
                   >
-                    {copiedId === test.id ? 'Скопировано' : 'Поделиться'}
-                  </button>
+                    Пройти тест <span>↗</span>
+                  </Link>
+
+                  <Link
+                    className="test-card-secondary-action"
+                    to={`/results/${test.id}`}
+                  >
+                    Результаты
+                  </Link>
 
                   <button
                     type="button"

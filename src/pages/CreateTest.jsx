@@ -7,7 +7,7 @@ function createEmptyQuestion() {
   return {
     question: '',
     answers: ['', '', '', ''],
-    correct: 0,
+    correct: null,
   }
 }
 
@@ -21,6 +21,8 @@ function CreateTest() {
   const [error, setError] = useState('')
 
   function updateQuestion(questionIndex, value) {
+    setError('')
+
     setQuestions((currentQuestions) =>
       currentQuestions.map((question, index) =>
         index === questionIndex
@@ -34,6 +36,8 @@ function CreateTest() {
   }
 
   function updateAnswer(questionIndex, answerIndex, value) {
+    setError('')
+
     setQuestions((currentQuestions) =>
       currentQuestions.map((question, index) =>
         index === questionIndex
@@ -49,6 +53,8 @@ function CreateTest() {
   }
 
   function updateCorrectAnswer(questionIndex, answerIndex) {
+    setError('')
+
     setQuestions((currentQuestions) =>
       currentQuestions.map((question, index) =>
         index === questionIndex
@@ -62,6 +68,8 @@ function CreateTest() {
   }
 
   function addQuestion() {
+    setError('')
+
     setQuestions((currentQuestions) => [
       ...currentQuestions,
       createEmptyQuestion(),
@@ -69,22 +77,28 @@ function CreateTest() {
   }
 
   function removeQuestion(questionIndex) {
-    if (questions.length === 1) {
+    if (questions.length === 1 || loading) {
       return
     }
+
+    setError('')
 
     setQuestions((currentQuestions) =>
       currentQuestions.filter((_, index) => index !== questionIndex)
     )
   }
 
-  async function handleSubmit(event) {
-    event.preventDefault()
-    setError('')
+  function validateForm() {
+    if (!creatorName.trim()) {
+      return 'Заполни имя создателя'
+    }
 
-    if (!creatorName.trim() || !title.trim()) {
-      setError('Заполни имя создателя и название теста')
-      return
+    if (!title.trim()) {
+      return 'Заполни название теста'
+    }
+
+    if (questions.length === 0) {
+      return 'Добавь хотя бы один вопрос'
     }
 
     const hasEmptyQuestion = questions.some(
@@ -94,7 +108,36 @@ function CreateTest() {
     )
 
     if (hasEmptyQuestion) {
-      setError('Заполни все вопросы и варианты ответов')
+      return 'Заполни все вопросы и варианты ответов'
+    }
+
+    const hasIncorrectAnswer = questions.some(
+      (question) =>
+        question.correct === null ||
+        question.correct < 0 ||
+        question.correct >= question.answers.length
+    )
+
+    if (hasIncorrectAnswer) {
+      return 'Выбери правильный вариант ответа для каждого вопроса'
+    }
+
+    return ''
+  }
+
+  async function handleSubmit(event) {
+    event.preventDefault()
+
+    if (loading) {
+      return
+    }
+
+    setError('')
+
+    const validationError = validateForm()
+
+    if (validationError) {
+      setError(validationError)
       return
     }
 
@@ -148,7 +191,7 @@ function CreateTest() {
       navigate(`/test/${test.id}`)
     } catch (submitError) {
       console.error('Ошибка создания теста:', submitError)
-      setError('Не удалось создать тест')
+      setError('Не удалось создать тест. Попробуй ещё раз.')
     } finally {
       setLoading(false)
     }
@@ -175,8 +218,12 @@ function CreateTest() {
             <input
               type="text"
               value={creatorName}
-              onChange={(event) => setCreatorName(event.target.value)}
+              onChange={(event) => {
+                setCreatorName(event.target.value)
+                setError('')
+              }}
               placeholder="Например, Виталий"
+              disabled={loading}
             />
           </label>
 
@@ -186,8 +233,12 @@ function CreateTest() {
             <input
               type="text"
               value={title}
-              onChange={(event) => setTitle(event.target.value)}
+              onChange={(event) => {
+                setTitle(event.target.value)
+                setError('')
+              }}
               placeholder="Насколько хорошо вы меня знаете?"
+              disabled={loading}
             />
           </label>
 
@@ -212,6 +263,7 @@ function CreateTest() {
                       type="button"
                       className="remove-question-button"
                       onClick={() => removeQuestion(questionIndex)}
+                      disabled={loading}
                     >
                       Удалить
                     </button>
@@ -228,6 +280,7 @@ function CreateTest() {
                       updateQuestion(questionIndex, event.target.value)
                     }
                     placeholder="Например, какая моя любимая машина?"
+                    disabled={loading}
                   />
                 </label>
 
@@ -246,6 +299,7 @@ function CreateTest() {
                             answerIndex
                           )
                         }
+                        disabled={loading}
                       />
 
                       <input
@@ -259,6 +313,7 @@ function CreateTest() {
                           )
                         }
                         placeholder={`Вариант ${answerIndex + 1}`}
+                        disabled={loading}
                       />
                     </div>
                   ))}
@@ -275,6 +330,7 @@ function CreateTest() {
             type="button"
             className="add-question-button"
             onClick={addQuestion}
+            disabled={loading}
           >
             + Добавить ещё вопрос
           </button>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import './Result.css'
 
@@ -15,7 +15,6 @@ function getValidNumber(value, fallback = 0) {
 
 function Result() {
   const { id } = useParams()
-  const navigate = useNavigate()
   const [searchParams] = useSearchParams()
 
   const rawScore = getValidNumber(searchParams.get('score'))

@@ -1,169 +1,330 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import './TestIntro.css'
 
-function TestIntro() {
+function TakeTest() {
   const { id } = useParams()
+  const navigate = useNavigate()
 
   const [test, setTest] = useState(null)
+  const [questions, setQuestions] = useState([])
+  const [currentQuestion, setCurrentQuestion] = useState(0)
+  const [answers, setAnswers] = useState({})
   const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
-  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
+    let mounted = true
+
     async function loadTest() {
-      try {
-        const { data, error: testError } = await supabase
-          .from('tests')
-          .select('*')
-          .eq('id', id)
-          .single()
+      setLoading(true)
+      setError('')
 
-        if (testError) {
-          throw testError
-        }
+      const { data: testData, error: testError } = await supabase
+        .from('tests')
+        .select('*')
+        .eq('id', id)
+        .single()
 
-        setTest(data)
-      } catch (loadError) {
-        console.error('Ошибка загрузки теста:', loadError)
-        setError('Тест не найден')
-      } finally {
-        setLoading(false)
+      if (!mounted) {
+        return
       }
+
+      if (testError) {
+        console.error('Ошибка загрузки теста:', testError)
+        setError('Не удалось загрузить тест')
+        setLoading(false)
+        return
+      }
+
+      const { data: questionsData, error: questionsError } =
+        await supabase
+          .from('questions')
+          .select('*')
+          .eq('test_id', id)
+          .order('id', { ascending: true })
+
+      if (!mounted) {
+        return
+      }
+
+      if (questionsError) {
+        console.error('Ошибка загрузки вопросов:', questionsError)
+        setError('Не удалось загрузить вопросы')
+        setLoading(false)
+        return
+      }
+
+      setTest(testData)
+      setQuestions(questionsData || [])
+      setLoading(false)
     }
 
     loadTest()
+
+    return () => {
+      mounted = false
+    }
   }, [id])
 
-  async function handleShare() {
-    const testUrl = window.location.href
+  function selectAnswer(answerIndex) {
+    if (submitting) {
+      return
+    }
 
-    try {
-      await navigator.clipboard.writeText(testUrl)
-      setCopied(true)
+    setError('')
 
-      setTimeout(() => {
-        setCopied(false)
-      }, 2500)
-    } catch (shareError) {
-      console.error('Ошибка копирования ссылки:', shareError)
+    setAnswers((currentAnswers) => ({
+      ...currentAnswers,
+      [currentQuestion]: answerIndex,
+    }))
+  }
 
-      const textArea = document.createElement('textarea')
-      textArea.value = testUrl
-      textArea.style.position = 'fixed'
-      textArea.style.opacity = '0'
+  async function finishTest() {
+    if (submitting || questions.length === 0) {
+      return
+    }
 
-      document.body.appendChild(textArea)
-      textArea.focus()
-      textArea.select()
+    const hasUnansweredQuestion = questions.some(
+      (_, index) => answers[index] === undefined
+    )
 
-      try {
-        document.execCommand('copy')
-        setCopied(true)
+    if (hasUnansweredQuestion) {
+      setError('Ответь на все вопросы перед завершением теста')
+      return
+    }
 
-        setTimeout(() => {
-          setCopied(false)
-        }, 2500)
-      } catch (fallbackError) {
-        console.error('Не удалось скопировать ссылку:', fallbackError)
+    setSubmitting(true)
+    setError('')
+
+    const score = questions.reduce((total, question, index) => {
+      if (answers[index] === question.correct) {
+        return total + 1
       }
 
-      document.body.removeChild(textArea)
+      return total
+    }, 0)
+
+    const { error: resultError } = await supabase
+      .from('results')
+      .insert({
+        test_id: id,
+        score,
+        total: questions.length,
+      })
+
+    if (resultError) {
+      console.error('Ошибка сохранения результата:', resultError)
+
+      setError(
+        resultError.message || 'Не удалось сохранить результат'
+      )
+
+      setSubmitting(false)
+      return
     }
+
+    navigate(`/result/${id}?score=${score}&total=${questions.length}`)
+  }
+
+  function goNext() {
+    if (submitting) {
+      return
+    }
+
+    if (answers[currentQuestion] === undefined) {
+      setError('Выбери один вариант ответа')
+      return
+    }
+
+    setError('')
+
+    if (currentQuestion === questions.length - 1) {
+      finishTest()
+      return
+    }
+
+    setCurrentQuestion((current) => current + 1)
+  }
+
+  function goBack() {
+    if (submitting) {
+      return
+    }
+
+    setError('')
+    setCurrentQuestion((current) => Math.max(current - 1, 0))
   }
 
   if (loading) {
     return (
-      <main className="page intro-page">
-        <div className="intro-loading">Загрузка теста...</div>
+      <main className="page">
+        <div className="take-test-container">
+          <p className="loading-text">Загрузка теста...</p>
+        </div>
       </main>
     )
   }
 
-  if (error) {
+  if (error && (!test || questions.length === 0)) {
     return (
-      <main className="page intro-page">
-        <div className="intro-error">
-          <span>404</span>
-          <h1>{error}</h1>
-
-          <Link to="/tests" className="intro-secondary-button">
-            Вернуться к тестам
-          </Link>
-        </div>
-      </main>
-    )
-  }
-
-  return (
-    <main className="page intro-page">
-      <div className="intro-container">
-        <div className="intro-topline">
-          <span className="intro-badge">KEZLI TEST</span>
-          <span className="intro-number">01</span>
-        </div>
-
-        <div className="intro-content">
-          <p className="intro-label">Тест от {test.creator_name}</p>
-
-          <h1>{test.title}</h1>
-
-          <p className="intro-description">
-            Проверь, насколько хорошо ты знаешь этого человека.
-            Отвечай честно и узнай свой результат в конце.
-          </p>
-
-          <div className="intro-info">
-            <div className="intro-info-item">
-              <span className="intro-info-icon">✦</span>
-
-              <div>
-                <strong>Личные вопросы</strong>
-                <span>Только о человеке, который создал тест</span>
-              </div>
-            </div>
-
-            <div className="intro-info-item">
-              <span className="intro-info-icon">↗</span>
-
-              <div>
-                <strong>Результат в конце</strong>
-                <span>Узнай, сколько ответов ты угадал</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="intro-actions">
-            <Link
-              to={`/test/${id}/questions`}
-              className="intro-primary-button"
-            >
-              Пройти тест
-              <span>↗</span>
-            </Link>
+      <main className="page">
+        <div className="take-test-container">
+          <div className="error-state">
+            <p>{error}</p>
 
             <button
               type="button"
-              className="intro-share-button"
-              onClick={handleShare}
+              className="primary-link"
+              onClick={() => navigate('/tests')}
             >
-              {copied ? 'Ссылка скопирована ✓' : 'Поделиться тестом ↗'}
+              Вернуться к тестам
             </button>
-
-            <Link to="/create" className="intro-secondary-button">
-              Создать свой тест
-            </Link>
           </div>
         </div>
+      </main>
+    )
+  }
 
-        <div className="intro-footer">
-          <span>Готов проверить свои знания?</span>
-          <span>KEZLI / 2026</span>
+  if (!test || questions.length === 0) {
+    return (
+      <main className="page">
+        <div className="take-test-container">
+          <div className="error-state">
+            <p>В этом тесте пока нет вопросов</p>
+
+            <button
+              type="button"
+              className="primary-link"
+              onClick={() => navigate('/tests')}
+            >
+              Вернуться к тестам
+            </button>
+          </div>
+        </div>
+      </main>
+    )
+  }
+
+  const question = questions[currentQuestion]
+  const selectedAnswer = answers[currentQuestion]
+  const progress = ((currentQuestion + 1) / questions.length) * 100
+  const isLastQuestion = currentQuestion === questions.length - 1
+
+  return (
+    <main className="page">
+      <div className="take-test-container">
+        <div className="take-test-top">
+          <button
+            type="button"
+            className="back-button"
+            onClick={() => navigate(`/test/${id}`)}
+            disabled={submitting}
+          >
+            ← Назад
+          </button>
+
+          <span className="take-test-counter">
+            Вопрос {currentQuestion + 1} из {questions.length}
+          </span>
+        </div>
+
+        <div className="take-test-heading">
+          <p className="eyebrow">KEZLI / TEST</p>
+
+          <h1>{test.title}</h1>
+
+          <p>
+            Тест от <strong>{test.creator_name}</strong>
+          </p>
+        </div>
+
+        <div className="test-progress-info">
+          <span>Прогресс прохождения</span>
+
+          <strong>{Math.round(progress)}%</strong>
+        </div>
+
+        <div
+          className="test-progress"
+          role="progressbar"
+          aria-label="Прогресс прохождения теста"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow={Math.round(progress)}
+        >
+          <div
+            className="test-progress-bar"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+
+        <section className="take-test-card">
+          <div className="question-number">
+            ВОПРОС {String(currentQuestion + 1).padStart(2, '0')}
+          </div>
+
+          <h2>{question.question}</h2>
+
+          <div className="take-answers">
+            {question.answers.map((answer, answerIndex) => {
+              const isSelected = selectedAnswer === answerIndex
+
+              return (
+                <button
+                  type="button"
+                  className={`take-answer ${
+                    isSelected ? 'selected' : ''
+                  }`}
+                  key={answerIndex}
+                  onClick={() => selectAnswer(answerIndex)}
+                  disabled={submitting}
+                  aria-pressed={isSelected}
+                >
+                  <span className="take-answer-letter">
+                    {String.fromCharCode(65 + answerIndex)}
+                  </span>
+
+                  <span className="take-answer-text">{answer}</span>
+
+                  <span className="take-answer-check">
+                    {isSelected ? '✓' : '↗'}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        </section>
+
+        {error && <p className="form-error">{error}</p>}
+
+        <div className="take-test-actions">
+          <button
+            type="button"
+            className="secondary-link"
+            onClick={goBack}
+            disabled={currentQuestion === 0 || submitting}
+          >
+            ← Предыдущий
+          </button>
+
+          <button
+            type="button"
+            className="primary-link"
+            onClick={goNext}
+            disabled={submitting}
+          >
+            {submitting
+              ? 'Сохраняем...'
+              : isLastQuestion
+                ? 'Завершить тест ↗'
+                : 'Следующий вопрос ↗'}
+          </button>
         </div>
       </div>
     </main>
   )
 }
 
-export default TestIntro
+export default TakeTest

@@ -1,7 +1,31 @@
 {
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/test/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/tests",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/my-tests",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/create",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/result/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/results/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/auth",
       "destination": "/index.html"
     }
   ]

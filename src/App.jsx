@@ -15,9 +15,10 @@ import Results from './pages/Results'
 import Tests from './pages/Tests'
 import Auth from './pages/Auth'
 import MyTests from './pages/MyTests'
+import Review from './pages/Review'
+
 import Header from './components/Header'
 import ProtectedRoute from './components/ProtectedRoute'
-import Review from './pages/Review'
 
 import './App.css'
 
@@ -35,48 +36,84 @@ function ScrollToTop() {
   return null
 }
 
+function PageTransition() {
+  const location = useLocation()
+
+  return (
+    <main className="app-main" key={location.pathname}>
+      <div className="page-transition">
+        <Routes>
+          <Route path="/" element={<Home />} />
+
+          <Route
+            path="/create"
+            element={
+              <ProtectedRoute>
+                <CreateTest />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route path="/tests" element={<Tests />} />
+
+          <Route path="/test/:id" element={<TestIntro />} />
+
+          <Route
+            path="/test/:id/questions"
+            element={<TakeTest />}
+          />
+
+          <Route path="/result/:id" element={<Result />} />
+
+          <Route path="/results/:id" element={<Results />} />
+
+          <Route path="/auth" element={<Auth />} />
+
+          <Route path="/review/:id" element={<Review />} />
+
+          <Route
+            path="/my-tests"
+            element={
+              <ProtectedRoute>
+                <MyTests />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="*"
+            element={
+              <section className="not-found-page">
+                <div className="not-found-icon">404</div>
+
+                <h1>Страница не найдена</h1>
+
+                <p>
+                  Возможно, ссылка устарела или страница была перемещена.
+                </p>
+
+                <a href="/" className="primary-button">
+                  Вернуться на главную
+                </a>
+              </section>
+            }
+          />
+        </Routes>
+      </div>
+    </main>
+  )
+}
+
 function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
 
-      <Header />
+      <div className="app-shell">
+        <Header />
 
-      <Routes>
-        <Route path="/" element={<Home />} />
-
-        <Route
-          path="/create"
-          element={
-            <ProtectedRoute>
-              <CreateTest />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route path="/tests" element={<Tests />} />
-
-        <Route path="/test/:id" element={<TestIntro />} />
-
-        <Route path="/test/:id/questions" element={<TakeTest />} />
-
-        <Route path="/result/:id" element={<Result />} />
-
-        <Route path="/results/:id" element={<Results />} />
-
-        <Route path="/auth" element={<Auth />} />
-
-        <Route path="/review/:id" element={<Review />} />
-
-        <Route
-          path="/my-tests"
-          element={
-            <ProtectedRoute>
-              <MyTests />
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
+        <PageTransition />
+      </div>
     </BrowserRouter>
   )
 }

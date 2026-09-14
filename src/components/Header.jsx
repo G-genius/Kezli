@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase'
 function Header() {
   const navigate = useNavigate()
   const [user, setUser] = useState(null)
+  const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
     let mounted = true
@@ -35,27 +36,50 @@ function Header() {
 
   async function handleSignOut() {
     await supabase.auth.signOut()
+    setMenuOpen(false)
     navigate('/')
+  }
+
+  function closeMenu() {
+    setMenuOpen(false)
   }
 
   return (
     <header className="site-header">
       <div className="header-inner">
-        <Link className="logo" to="/">
-          KEZLI
+        <Link className="logo" to="/" onClick={closeMenu}>
+          KEZLI<span>.</span>
         </Link>
 
-        <nav className="site-nav">
+        <button
+          type="button"
+          className="mobile-menu-button"
+          aria-label={menuOpen ? 'Закрыть меню' : 'Открыть меню'}
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((previous) => !previous)}
+        >
+          <span />
+          <span />
+          <span />
+        </button>
+
+        <nav className={`site-nav ${menuOpen ? 'is-open' : ''}`}>
           <NavLink
             to="/tests"
-            className={({ isActive }) => (isActive ? 'active' : '')}
+            className={({ isActive }) =>
+              isActive ? 'active' : ''
+            }
+            onClick={closeMenu}
           >
             Все тесты
           </NavLink>
 
           <NavLink
             to="/create"
-            className={({ isActive }) => (isActive ? 'active' : '')}
+            className={({ isActive }) =>
+              isActive ? 'active' : ''
+            }
+            onClick={closeMenu}
           >
             Создать тест
           </NavLink>
@@ -63,26 +87,38 @@ function Header() {
           {user && (
             <NavLink
               to="/my-tests"
-              className={({ isActive }) => (isActive ? 'active' : '')}
+              className={({ isActive }) =>
+                isActive ? 'active' : ''
+              }
+              onClick={closeMenu}
             >
               Мои тесты
             </NavLink>
           )}
 
           {user ? (
-            <button
-              type="button"
-              className="header-auth-button"
-              onClick={handleSignOut}
-            >
-              Выйти
-            </button>
+            <div className="header-user">
+              <span className="header-user-email">
+                {user.email}
+              </span>
+
+              <button
+                type="button"
+                className="header-auth-button"
+                onClick={handleSignOut}
+              >
+                Выйти
+              </button>
+            </div>
           ) : (
             <NavLink
               to="/auth"
               className={({ isActive }) =>
-                isActive ? 'active header-login-link' : 'header-login-link'
+                isActive
+                  ? 'active header-login-link'
+                  : 'header-login-link'
               }
+              onClick={closeMenu}
             >
               Войти
             </NavLink>

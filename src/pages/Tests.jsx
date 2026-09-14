@@ -4,6 +4,10 @@ import { supabase } from '../lib/supabase'
 import './Tests.css'
 
 function formatDate(date) {
+  if (!date) {
+    return 'Дата неизвестна'
+  }
+
   return new Date(date).toLocaleDateString('ru-RU', {
     day: 'numeric',
     month: 'long',
@@ -18,8 +22,13 @@ function Tests() {
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState('')
 
-  async function loadTests() {
-    setLoading(true)
+  async function loadTests(isRefresh = false) {
+    if (isRefresh) {
+      setRefreshing(true)
+    } else {
+      setLoading(true)
+    }
+
     setError('')
 
     const { data, error: testsError } = await supabase
@@ -36,7 +45,11 @@ function Tests() {
       setTests(data || [])
     }
 
-    setLoading(false)
+    if (isRefresh) {
+      setRefreshing(false)
+    } else {
+      setLoading(false)
+    }
   }
 
   useEffect(() => {
@@ -65,7 +78,19 @@ function Tests() {
     return (
       <main className="page">
         <div className="tests-container">
-          <div className="loading-state">Загрузка тестов...</div>
+          <section className="tests-page-heading">
+            <div>
+              <p className="eyebrow">KEZLI / DISCOVER</p>
+              <h1>Все тесты</h1>
+              <p>Загружаем интересные тесты для тебя...</p>
+            </div>
+          </section>
+
+          <div className="tests-loading-grid">
+            <div className="test-skeleton" />
+            <div className="test-skeleton" />
+            <div className="test-skeleton" />
+          </div>
         </div>
       </main>
     )
@@ -92,7 +117,7 @@ function Tests() {
         </section>
 
         <section className="tests-toolbar">
-          <div className="search-wrapper">
+          <label className="search-wrapper">
             <span className="search-icon">⌕</span>
 
             <input
@@ -102,7 +127,7 @@ function Tests() {
               placeholder="Поиск по названию или автору..."
               aria-label="Поиск тестов"
             />
-          </div>
+          </label>
 
           <button
             type="button"
@@ -114,13 +139,25 @@ function Tests() {
           </button>
         </section>
 
-        {error && <div className="error-message">{error}</div>}
+        {error && (
+          <div className="error-message" role="alert">
+            <span>{error}</span>
+
+            <button
+              type="button"
+              className="text-button"
+              onClick={() => loadTests()}
+            >
+              Повторить
+            </button>
+          </div>
+        )}
 
         {tests.length === 0 ? (
           <section className="empty-state">
             <div className="empty-state-icon">♡</div>
 
-            <h2>Пока нет тестов</h2>
+            <h2>Пока нет публичных тестов</h2>
 
             <p>
               Создай первый тест и отправь его друзьям, чтобы узнать,
@@ -137,7 +174,9 @@ function Tests() {
 
             <h2>Ничего не найдено</h2>
 
-            <p>Попробуй изменить запрос или очистить поле поиска.</p>
+            <p>
+              По запросу «{search}» тестов нет. Попробуй изменить запрос.
+            </p>
 
             <button
               type="button"
@@ -150,7 +189,9 @@ function Tests() {
         ) : (
           <>
             <div className="tests-list-heading">
-              <span>Найдено тестов: {filteredTests.length}</span>
+              <span>
+                Найдено тестов: <strong>{filteredTests.length}</strong>
+              </span>
 
               {search && <span>Поиск: «{search}»</span>}
             </div>
@@ -170,10 +211,13 @@ function Tests() {
 
                   <div className="test-card-content">
                     <p className="test-card-author">
-                      Тест от <strong>{test.creator_name}</strong>
+                      Тест от{' '}
+                      <strong>
+                        {test.creator_name || 'Анонимного автора'}
+                      </strong>
                     </p>
 
-                    <h2>{test.title}</h2>
+                    <h2>{test.title || 'Без названия'}</h2>
                   </div>
 
                   <Link

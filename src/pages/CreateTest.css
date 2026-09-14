@@ -12,7 +12,7 @@
 
 .page-heading h1 {
   margin: 0 0 14px;
-  color: #fff0fa;
+  color: var(--text-primary, #fff0fa);
   font-size: 42px;
   line-height: 1.1;
   letter-spacing: -1px;
@@ -20,7 +20,7 @@
 
 .page-heading p {
   margin: 0;
-  color: #a99caf;
+  color: var(--text-secondary, #a99caf);
   font-size: 16px;
   line-height: 1.6;
 }
@@ -34,23 +34,28 @@
 .form-field {
   display: flex;
   flex-direction: column;
+  align-items: stretch;
   gap: 9px;
   width: 100%;
 }
 
 .form-field > span {
+  display: block;
+  width: 100%;
   color: #e6d9e9;
   font-size: 14px;
   font-weight: 700;
+  text-align: left;
 }
 
-.form-field input {
+.form-field input,
+.form-field select {
   display: block;
   width: 100%;
   min-width: 0;
   height: 52px;
   box-sizing: border-box;
-  padding: 15px 16px;
+  padding: 0 16px;
   border: 1px solid #3c3046;
   border-radius: 12px;
   outline: none;
@@ -60,16 +65,84 @@
   font-size: 15px;
   transition:
     border-color 0.2s ease,
-    background 0.2s ease;
+    background 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .form-field input::placeholder {
   color: #76687d;
 }
 
-.form-field input:focus {
+.form-field input:focus,
+.form-field select:focus {
   border-color: #b985d8;
   background: #211827;
+  box-shadow: 0 0 0 3px rgba(185, 133, 216, 0.1);
+}
+
+.form-field select {
+  cursor: pointer;
+}
+
+.access-field {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.access-field > span {
+  color: #e6d9e9;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.access-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid #3c3046;
+  border-radius: 14px;
+  background: #19131f;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.access-option:hover {
+  border-color: #765080;
+  background: #211827;
+  transform: translateY(-1px);
+}
+
+.access-option input {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  accent-color: #c98bdd;
+  cursor: pointer;
+}
+
+.access-option > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+}
+
+.access-option strong {
+  color: #fff0fa;
+  font-size: 15px;
+}
+
+.access-option small {
+  color: #96869f;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .questions-heading {
@@ -122,6 +195,14 @@
   border: 1px solid #3d3047;
   border-radius: 18px;
   background: #17111d;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.question-form-card:focus-within {
+  border-color: #60456d;
+  background: #1a1321;
 }
 
 .question-card-heading {
@@ -151,12 +232,22 @@
   cursor: pointer;
   transition:
     border-color 0.2s ease,
-    background 0.2s ease;
+    background 0.2s ease,
+    color 0.2s ease;
 }
 
 .remove-question-button:hover {
   border-color: #c978ad;
   background: #2b1a2b;
+  color: #fff0fa;
+}
+
+.remove-question-button:disabled,
+.add-question-button:disabled,
+.primary-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .answers-form {
@@ -172,6 +263,7 @@
   color: #e6d9e9;
   font-size: 15px;
   font-weight: 700;
+  text-align: left;
 }
 
 .answer-row {
@@ -210,6 +302,10 @@
   color: #fff0fa;
   font-family: inherit;
   font-size: 14px;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .answer-row input[type='text']::placeholder {
@@ -219,6 +315,7 @@
 .answer-row input[type='text']:focus {
   border-color: #b985d8;
   background: #291d31;
+  box-shadow: 0 0 0 3px rgba(185, 133, 216, 0.08);
 }
 
 .answers-form small {
@@ -226,6 +323,7 @@
   color: #89788f;
   font-size: 12px;
   line-height: 1.5;
+  text-align: left;
 }
 
 .add-question-button {
@@ -266,17 +364,13 @@
   cursor: pointer;
   transition:
     transform 0.2s ease,
-    opacity 0.2s ease;
+    opacity 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .primary-button:hover {
   transform: translateY(-1px);
-}
-
-.primary-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
+  box-shadow: 0 8px 24px rgba(155, 122, 229, 0.18);
 }
 
 .form-error {
@@ -288,6 +382,7 @@
   color: #f1b8d3;
   font-size: 14px;
   line-height: 1.5;
+  text-align: left;
 }
 
 @media (max-width: 700px) {
@@ -343,132 +438,61 @@
     padding: 7px 9px;
     font-size: 12px;
   }
+
+  .access-option {
+    padding: 16px;
+  }
 }
 
-.visibility-options {
-  display: grid;
-  gap: 12px;
+.create-container {
+  max-width: 980px;
+  margin: 0 auto;
 }
 
-.visibility-option {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 16px;
-  border: 1px solid #3c3046;
-  border-radius: 14px;
-  background: #19131f;
-  cursor: pointer;
+.page-heading {
+  max-width: 760px;
+  margin: 0 auto 42px;
+  text-align: center;
 }
 
-.visibility-option input {
-  width: 18px;
-  height: 18px;
-  margin-top: 2px;
-  accent-color: #c98bdd;
+.page-heading h1,
+.page-heading p {
+  text-align: center;
 }
 
-.visibility-option > span {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.visibility-option strong {
-  color: #fff0fa;
-  font-size: 15px;
-}
-
-.visibility-option small {
-  color: #a99caf;
-  font-size: 13px;
-  line-height: 1.5;
-}
-
-.form-field select {
+.create-form {
   width: 100%;
-  height: 52px;
-  padding: 0 16px;
-  border: 1px solid #3c3046;
-  border-radius: 12px;
-  outline: none;
-  background: #19131f;
-  color: #fff0fa;
-  font-family: inherit;
-  font-size: 15px;
+  max-width: 760px;
+  margin: 0 auto;
 }
 
-.form-field select:focus {
-  border-color: #b985d8;
-}
-
-.create-form > .form-field > span {
-  display: block;
+.questions-heading {
   width: 100%;
+  max-width: 760px;
+  margin: 12px auto 0;
+}
+
+.questions-heading h2,
+.questions-heading p {
   text-align: left;
 }
 
-.visibility-option > span {
-  text-align: left;
+.questions-list {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
 }
 
-.visibility-option strong,
-.visibility-option small {
-  text-align: left;
+.question-form-card {
+  width: 100%;
 }
 
-.form-field {
-  align-items: stretch;
+.add-question-button,
+.primary-button,
+.form-error {
+  width: 100%;
+  max-width: 760px;
+  margin-right: auto;
+  margin-left: auto;
 }
 
-.form-field > span {
-  text-align: left;
-}
-
-.access-field {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.access-field > span {
-  color: #e6d9e9;
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.access-option {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  padding: 20px;
-  border: 1px solid #3c3046;
-  border-radius: 14px;
-  background: #19131f;
-  cursor: pointer;
-}
-
-.access-option input {
-  flex: 0 0 auto;
-  width: 20px;
-  height: 20px;
-  margin-top: 2px;
-  accent-color: #c98bdd;
-}
-
-.access-option div {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.access-option strong {
-  color: #fff0fa;
-  font-size: 15px;
-}
-
-.access-option small {
-  color: #96869f;
-  font-size: 13px;
-  line-height: 1.5;
-}

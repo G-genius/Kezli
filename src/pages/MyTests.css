@@ -10,7 +10,7 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 24px;
-  margin-bottom: 24px;
+  margin-bottom: 28px;
 }
 
 .my-tests-heading h1 {
@@ -29,24 +29,45 @@
   line-height: 1.6;
 }
 
-.my-tests-summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 24px;
-  padding: 16px 20px;
-  border: 1px solid #3d3047;
-  border-radius: 14px;
-  background: #17111d;
-  color: #a99caf;
-  font-size: 13px;
+/* Статистика */
+
+.my-tests-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 28px;
 }
 
-.my-tests-summary strong {
-  color: #e8b7df;
-  font-size: 20px;
+.my-tests-stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid #3d3047;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #1b1422, #17111d);
 }
+
+.my-tests-stat-label {
+  color: #a99caf;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.my-tests-stat-card strong {
+  color: #f1c8eb;
+  font-size: 32px;
+  line-height: 1;
+}
+
+.my-tests-stat-card small {
+  color: #806f8b;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* Список тестов */
 
 .my-tests-list {
   display: flex;
@@ -65,11 +86,13 @@
   background: #17111d;
   transition:
     border-color 0.2s ease,
+    background 0.2s ease,
     transform 0.2s ease;
 }
 
 .my-test-card:hover {
   border-color: #715675;
+  background: #1b1422;
   transform: translateY(-2px);
 }
 
@@ -93,6 +116,14 @@
   letter-spacing: 0.08em;
 }
 
+.my-test-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .my-test-date {
   color: #75657e;
   font-size: 12px;
@@ -105,12 +136,112 @@
 }
 
 .my-test-card h2 {
+  max-width: 620px;
   margin: 0;
   color: #fff0fa;
   font-size: 21px;
   line-height: 1.3;
   overflow-wrap: anywhere;
 }
+
+/* Переключатель приватности */
+
+.visibility-switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  max-width: 620px;
+  margin-top: 24px;
+  padding: 16px 18px;
+  border: 1px solid rgba(185, 133, 216, 0.18);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.visibility-switch-row > div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.visibility-switch-row strong {
+  color: #eee0ef;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.visibility-switch-row small {
+  color: #89788f;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.visibility-switch {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  cursor: pointer;
+}
+
+.visibility-switch input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.visibility-switch-track {
+  display: flex;
+  align-items: center;
+  width: 50px;
+  height: 28px;
+  padding: 4px;
+  box-sizing: border-box;
+  border: 1px solid #59435e;
+  border-radius: 999px;
+  background: #2a2032;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.visibility-switch-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #a98eb4;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease;
+}
+
+.visibility-switch input:checked + .visibility-switch-track {
+  border-color: #b985d8;
+  background: linear-gradient(135deg, #9b7ae5, #dca5d7);
+}
+
+.visibility-switch input:checked
+  + .visibility-switch-track
+  .visibility-switch-thumb {
+  background: #fff7ff;
+  transform: translateX(22px);
+}
+
+.visibility-switch input:focus-visible + .visibility-switch-track {
+  outline: 3px solid rgba(185, 133, 216, 0.35);
+  outline-offset: 3px;
+}
+
+.visibility-switch input:disabled + .visibility-switch-track {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Кнопки */
 
 .my-test-actions {
   display: flex;
@@ -121,51 +252,6 @@
 
 .my-test-actions a {
   text-decoration: none;
-}
-
-.my-tests-empty {
-  padding: 56px 24px;
-  border: 1px dashed #59435e;
-  border-radius: 18px;
-  text-align: center;
-  background: #17111d;
-}
-
-.my-tests-empty-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  margin: 0 auto 20px;
-  border-radius: 14px;
-  background: #302039;
-  color: #e2a8d8;
-  font-size: 24px;
-}
-
-.my-tests-empty h2 {
-  margin: 0 0 12px;
-  color: #fff0fa;
-  font-size: 24px;
-}
-
-.my-tests-empty p {
-  margin: 0 0 24px;
-  color: #a99caf;
-  line-height: 1.6;
-}
-
-.my-tests-loading {
-  color: #a99caf;
-}
-
-.my-tests-error {
-  padding: 16px;
-  border: 1px solid #7d405d;
-  border-radius: 12px;
-  background: #351b2b;
-  color: #f1b8d3;
 }
 
 .delete-test-button {
@@ -195,6 +281,92 @@
   cursor: not-allowed;
 }
 
+/* Пустое состояние */
+
+.my-tests-empty {
+  padding: 64px 24px;
+  border: 1px dashed #59435e;
+  border-radius: 18px;
+  background: #17111d;
+  text-align: center;
+}
+
+.my-tests-empty-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 20px;
+  border-radius: 15px;
+  background: #302039;
+  color: #e2a8d8;
+  font-size: 25px;
+}
+
+.my-tests-empty h2 {
+  margin: 0 0 12px;
+  color: #fff0fa;
+  font-size: 24px;
+}
+
+.my-tests-empty p {
+  max-width: 420px;
+  margin: 0 auto 24px;
+  color: #a99caf;
+  line-height: 1.6;
+}
+
+/* Загрузка и ошибки */
+
+.my-tests-loading-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 180px;
+  color: #a99caf;
+}
+
+.my-tests-loading-card p {
+  margin: 0;
+}
+
+.loading-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #dca5d7;
+  box-shadow: 0 0 0 6px rgba(220, 165, 215, 0.08);
+  animation: loading-pulse 1.2s ease-in-out infinite;
+}
+
+.my-tests-error {
+  margin: 0 0 20px;
+  padding: 16px;
+  border: 1px solid #7d405d;
+  border-radius: 12px;
+  background: #351b2b;
+  color: #f1b8d3;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+@keyframes loading-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.85);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Планшеты и мобильные устройства */
+
 @media (max-width: 700px) {
   .my-tests-container {
     padding: 32px 16px 56px;
@@ -213,6 +385,34 @@
     font-size: 14px;
   }
 
+  .my-tests-stats {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .my-tests-stat-card {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 5px 16px;
+    padding: 16px;
+  }
+
+  .my-tests-stat-label {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .my-tests-stat-card strong {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+
+  .my-tests-stat-card small {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
   .my-test-card {
     align-items: stretch;
     flex-direction: column;
@@ -222,7 +422,21 @@
   .my-test-card-topline {
     align-items: flex-start;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
+  }
+
+  .my-test-meta {
+    justify-content: flex-start;
+  }
+
+  .visibility-switch-row {
+    align-items: center;
+    gap: 14px;
+    padding: 14px;
+  }
+
+  .visibility-switch-row small {
+    max-width: 220px;
   }
 
   .my-test-actions {
@@ -233,5 +447,33 @@
   .delete-test-button {
     flex: 1;
     text-align: center;
+  }
+}
+
+@media (max-width: 420px) {
+  .my-tests-stat-card {
+    padding: 14px;
+  }
+
+  .my-test-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .my-test-actions a,
+  .delete-test-button {
+    width: 100%;
+  }
+
+  .visibility-switch-row {
+    align-items: flex-start;
+  }
+
+  .visibility-switch-row strong {
+    font-size: 12px;
+  }
+
+  .visibility-switch-row small {
+    font-size: 11px;
   }
 }

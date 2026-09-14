@@ -3,12 +3,25 @@ import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import './MyTests.css'
 
+function formatDate(dateValue) {
+  if (!dateValue) {
+    return 'Дата неизвестна'
+  }
+
+  return new Intl.DateTimeFormat('ru-RU', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date(dateValue))
+}
+
 function MyTests() {
   const navigate = useNavigate()
 
   const [tests, setTests] = useState([])
   const [loading, setLoading] = useState(true)
   const [deletingId, setDeletingId] = useState(null)
+  const [updatingId, setUpdatingId] = useState(null)
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -50,6 +63,40 @@ function MyTests() {
     loadMyTests()
   }, [navigate])
 
+  async function handleVisibilityChange(testId, nextIsPublic) {
+    setUpdatingId(testId)
+    setError('')
+
+    const previousTests = tests
+
+    setTests((currentTests) =>
+      currentTests.map((test) =>
+        test.id === testId
+          ? {
+              ...test,
+              is_public: nextIsPublic,
+            }
+          : test
+      )
+    )
+
+    const { error: updateError } = await supabase
+      .from('tests')
+      .update({
+        is_public: nextIsPublic,
+      })
+      .eq('id', testId)
+
+    if (updateError) {
+      console.error('Ошибка изменения доступа:', updateError)
+
+      setTests(previousTests)
+      setError('Не удалось изменить доступ к тесту')
+    }
+
+    setUpdatingId(null)
+  }
+
   async function handleDelete(testId) {
     const confirmed = window.confirm(
       'Ты точно хочешь удалить этот тест? Все результаты тоже будут удалены.'
@@ -83,23 +130,14 @@ function MyTests() {
     }
   }
 
-  function formatDate(dateValue) {
-    if (!dateValue) {
-      return 'Дата неизвестна'
-    }
-
-    return new Intl.DateTimeFormat('ru-RU', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    }).format(new Date(dateValue))
-  }
-
   if (loading) {
     return (
       <main className="page">
         <div className="my-tests-container">
-          <p className="my-tests-loading">Загрузка твоих тестов...</p>
+          <div className="my-tests-loading-card">
+            <span className="loading-dot" />
+            <p>Загрузка твоих тестов...</p>
+          </div>
         </div>
       </main>
     )
@@ -109,7 +147,9 @@ function MyTests() {
     return (
       <main className="page">
         <div className="my-tests-container">
-          <p className="my-tests-error">{error}</p>
+          <div className="my-tests-error" role="alert">
+            {error}
+          </div>
         </div>
       </main>
     )
@@ -118,7 +158,7 @@ function MyTests() {
   return (
     <main className="page">
       <div className="my-tests-container">
-        <div className="my-tests-heading">
+        <section className="my-tests-heading">
           <div>
             <p className="eyebrow">KEZLI / ACCOUNT</p>
 
@@ -130,19 +170,38 @@ function MyTests() {
           </div>
 
           <Link className="primary-link" to="/create">
-            Создать тест ↗
+            Создать тест <span>↗</span>
           </Link>
+        </section>
+
+        <div className="my-tests-stats">
+          <div className="my-tests-stat-card">
+            <span className="my-tests-stat-label">Всего тестов</span>
+            <strong>{tests.length}</strong>
+            <small>Создано тобой</small>
+          </div>
+
+          <div className="my-tests-stat-card">
+            <span className="my-tests-stat-label">Общие</span>
+            <strong>{tests.filter((test) => test.is_public).length}</strong>
+            <small>Видны всем пользователям</small>
+          </div>
+
+          <div className="my-tests-stat-card">
+            <span className="my-tests-stat-label">Приватные</span>
+            <strong>{tests.filter((test) => !test.is_public).length}</strong>
+            <small>Доступны по ссылке</small>
+          </div>
         </div>
 
-        <div className="my-tests-summary">
-          <span>Всего тестов</span>
-          <strong>{tests.length}</strong>
-        </div>
-
-        {error && <p className="my-tests-error">{error}</p>}
+        {error && (
+          <div className="my-tests-error" role="alert">
+            {error}
+          </div>
+        )}
 
         {tests.length === 0 ? (
-          <div className="my-tests-empty">
+          <section className="my-tests-empty">
             <div className="my-tests-empty-icon">✦</div>
 
             <h2>У тебя пока нет тестов</h2>
@@ -150,11 +209,11 @@ function MyTests() {
             <p>Создай первый тест о себе и отправь его друзьям.</p>
 
             <Link className="primary-link" to="/create">
-              Создать первый тест ↗
+              Создать первый тест <span>↗</span>
             </Link>
-          </div>
+          </section>
         ) : (
-          <div className="my-tests-list">
+          <section className="my-tests-list">
             {tests.map((test, index) => (
               <article className="my-test-card" key={test.id}>
                 <div className="my-test-card-content">
@@ -163,16 +222,55 @@ function MyTests() {
                       {String(index + 1).padStart(2, '0')}
                     </span>
 
-                    <span className="my-test-date">
-                      {formatDate(test.created_at)}
-                    </span>
+                    <div className="my-test-meta">
+                      <span className="my-test-date">
+                        {formatDate(test.created_at)}
+                      </span>
+                    </div>
                   </div>
 
                   <p className="my-test-author">
-                    Автор: {test.creator_name}
+                    Автор: {test.creator_name || 'Анонимный автор'}
                   </p>
 
-                  <h2>{test.title}</h2>
+                  <h2>{test.title || 'Без названия'}</h2>
+
+                  <div className="visibility-switch-row">
+                    <div>
+                      <strong>
+                        {test.is_public ? 'Общий тест' : 'Приватный тест'}
+                      </strong>
+
+                      <small>
+                        {test.is_public
+                          ? 'Виден в разделе «Все тесты»'
+                          : 'Доступен только по ссылке'}
+                      </small>
+                    </div>
+
+                    <label className="visibility-switch">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(test.is_public)}
+                        onChange={(event) =>
+                          handleVisibilityChange(
+                            test.id,
+                            event.target.checked
+                          )
+                        }
+                        disabled={updatingId === test.id}
+                        aria-label={
+                          test.is_public
+                            ? 'Сделать тест приватным'
+                            : 'Сделать тест общим'
+                        }
+                      />
+
+                      <span className="visibility-switch-track">
+                        <span className="visibility-switch-thumb" />
+                      </span>
+                    </label>
+                  </div>
                 </div>
 
                 <div className="my-test-actions">
@@ -180,7 +278,7 @@ function MyTests() {
                     className="secondary-link"
                     to={`/test/${test.id}`}
                   >
-                    Открыть ↗
+                    Открыть <span>↗</span>
                   </Link>
 
                   <Link
@@ -201,7 +299,7 @@ function MyTests() {
                 </div>
               </article>
             ))}
-          </div>
+          </section>
         )}
       </div>
     </main>

@@ -16,6 +16,7 @@ function CreateTest() {
 
   const [creatorName, setCreatorName] = useState('')
   const [title, setTitle] = useState('')
+  const [isPublic, setIsPublic] = useState(false)
   const [questions, setQuestions] = useState([createEmptyQuestion()])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -165,6 +166,7 @@ function CreateTest() {
           creator_name: creatorName.trim(),
           title: title.trim(),
           user_id: user.id,
+          is_public: isPublic,
         })
         .select()
         .single()
@@ -242,11 +244,53 @@ function CreateTest() {
             />
           </label>
 
+          <div className="access-field">
+            <span>Доступ к тесту</span>
+
+            <label className="access-option">
+              <input
+                type="radio"
+                name="test-access"
+                checked={!isPublic}
+                onChange={() => setIsPublic(false)}
+                disabled={loading}
+              />
+
+              <div>
+                <strong>Приватный</strong>
+
+                <small>
+                  Не отображается в общем списке. Доступен по ссылке.
+                </small>
+              </div>
+            </label>
+
+            <label className="access-option">
+              <input
+                type="radio"
+                name="test-access"
+                checked={isPublic}
+                onChange={() => setIsPublic(true)}
+                disabled={loading}
+              />
+
+              <div>
+                <strong>Общий</strong>
+
+                <small>
+                  Отображается в разделе «Все тесты».
+                </small>
+              </div>
+            </label>
+          </div>
+
           <div className="questions-heading">
             <div>
               <h2>Вопросы</h2>
 
-              <p>У каждого вопроса должно быть четыре варианта ответа.</p>
+              <p>
+                У каждого вопроса должно быть четыре варианта ответа.
+              </p>
             </div>
 
             <span>{questions.length}</span>

@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import './Review.css'
 
 function Review() {
   const { id } = useParams()
-  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+
+  const resultId = searchParams.get('resultId')
 
   const [test, setTest] = useState(null)
   const [questions, setQuestions] = useState([])
@@ -19,69 +22,66 @@ function Review() {
       setLoading(true)
       setError('')
 
-      const { data: testData, error: testError } = await supabase
-        .from('tests')
-        .select('*')
-        .eq('id', id)
-        .single()
+      const [
+        { data: testData, error: testError },
+        { data: questionsData, error: questionsError },
+        { data: resultData, error: resultError },
+      ] = await Promise.all([
+        supabase
+          .from('tests')
+          .select('*')
+          .eq('id', id)
+          .single(),
 
-      if (!mounted) {
-        return
-      }
-
-      if (testError) {
-        console.error('Ошибка загрузки теста:', testError)
-        setError('Не удалось загрузить тест')
-        setLoading(false)
-        return
-      }
-
-      const { data: questionsData, error: questionsError } =
-        await supabase
+        supabase
           .from('questions')
           .select('*')
           .eq('test_id', id)
-          .order('id', { ascending: true })
+          .order('id', { ascending: true }),
+
+        resultId
+          ? supabase
+              .from('results')
+              .select('*')
+              .eq('id', resultId)
+              .eq('test_id', id)
+              .maybeSingle()
+          : supabase
+              .from('results')
+              .select('*')
+              .eq('test_id', id)
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .maybeSingle(),
+      ])
 
       if (!mounted) {
+        return
+      }
+
+      if (testError || questionsError || resultError) {
+        console.error('Ошибка загрузки разбора:', {
+          testError,
+          questionsError,
+          resultError,
+        })
+      }
+
+      if (testError || !testData) {
+        setError('Тест не найден')
+        setLoading(false)
         return
       }
 
       if (questionsError) {
-        console.error('Ошибка загрузки вопросов:', questionsError)
         setError('Не удалось загрузить вопросы')
-        setLoading(false)
-        return
-      }
-
-      const { data: resultData, error: resultError } = await supabase
-        .from('results')
-        .select('*')
-        .eq('test_id', id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle()
-
-      if (!mounted) {
-        return
-      }
-
-      if (resultError) {
-        console.error('Ошибка загрузки результата:', resultError)
-        setError('Не удалось загрузить результат')
-        setLoading(false)
-        return
-      }
-
-      if (!resultData) {
-        setError('Результат прохождения не найден')
         setLoading(false)
         return
       }
 
       setTest(testData)
       setQuestions(questionsData || [])
-      setResult(resultData)
+      setResult(resultData || null)
       setLoading(false)
     }
 
@@ -90,32 +90,28 @@ function Review() {
     return () => {
       mounted = false
     }
-  }, [id])
+  }, [id, resultId])
 
   if (loading) {
     return (
       <main className="page">
-        <div className="take-test-container">
-          <p className="loading-text">Загрузка разбора ответов...</p>
+        <div className="review-container">
+          <p>Загрузка разбора...</p>
         </div>
       </main>
     )
   }
 
-  if (error) {
+  if (error || !test) {
     return (
       <main className="page">
-        <div className="take-test-container">
-          <div className="error-state">
-            <p>{error}</p>
+        <div className="review-container">
+          <h1>Разбор не найден</h1>
 
-            <button
-              type="button"
-              className="primary-link"
-              onClick={() => navigate('/tests')}
-            >
-              Вернуться к тестам
-            </button>
+          <p>{error || 'Не удалось загрузить тест.'}</p>
+
+          <div className="review-actions">
+            <Link to="/tests">Вернуться к тестам</Link>
           </div>
         </div>
       </main>
@@ -124,21 +120,23 @@ function Review() {
 
   const savedAnswers = result?.answers || {}
 
+  const score = Number(result?.score || 0)
+  const total = Number(result?.total || questions.length || 0)
+
+  const percentage =
+    total > 0 ? Math.round((score / total) * 100) : 0
+
+  const resultLink = `/result/${id}?score=${score}&total=${total}`
+
   return (
     <main className="page">
-      <div className="take-test-container review-container">
-        <div className="take-test-top">
-          <Link className="back-button" to={`/result/${id}`}>
-            ← К результату
-          </Link>
+      <div className="review-container">
+        <Link to={resultLink} className="review-back-link">
+          ← К результату
+        </Link>
 
-          <span className="take-test-counter">
-            {result.score} из {result.total}
-          </span>
-        </div>
-
-        <div className="take-test-heading">
-          <p className="eyebrow">KEZLI / REVIEW</p>
+        <div className="review-header">
+          <p className="review-eyebrow">KEZLI / REVIEW</p>
 
           <h1>Разбор ответов</h1>
 
@@ -147,35 +145,60 @@ function Review() {
           </p>
         </div>
 
-        <div className="review-summary">
+        <section className="review-summary">
           <strong>
-            Правильных ответов: {result.score} из {result.total}
+            Правильных ответов: {score} из {total}
           </strong>
 
-          <span>
-            {Math.round((result.score / result.total) * 100)}%
-          </span>
-        </div>
+          <span>{percentage}%</span>
+        </section>
+
+        {!result?.answers && (
+          <div className="review-notice">
+            Этот результат был создан в старой версии теста.
+            Ответы пользователя не были сохранены, поэтому сейчас
+            можно посмотреть только правильные варианты.
+          </div>
+        )}
 
         <div className="review-list">
-          {questions.map((question, questionIndex) => {
-            const userAnswer = savedAnswers[questionIndex]
-            const isCorrect = userAnswer === question.correct
+          {questions.map((question, index) => {
+            const userAnswer = savedAnswers[index]
+            const correctAnswer = Number(question.correct)
+
+            const hasAnswer =
+              userAnswer !== undefined &&
+              userAnswer !== null &&
+              userAnswer !== ''
+
+            const isCorrect =
+              hasAnswer && Number(userAnswer) === correctAnswer
+
+            const answers = Array.isArray(question.answers)
+              ? question.answers
+              : []
+
+            const userAnswerText = hasAnswer
+              ? answers[Number(userAnswer)] || 'Ответ не найден'
+              : 'Ответ не сохранён'
+
+            const correctAnswerText =
+              answers[correctAnswer] || 'Ответ не найден'
 
             return (
-              <section
+              <article
+                key={question.id}
                 className={`review-card ${
                   isCorrect ? 'review-correct' : 'review-wrong'
                 }`}
-                key={question.id}
               >
                 <div className="review-card-top">
-                  <span className="question-number">
-                    ВОПРОС {String(questionIndex + 1).padStart(2, '0')}
+                  <span>
+                    Вопрос {String(index + 1).padStart(2, '0')}
                   </span>
 
                   <span className="review-status">
-                    {isCorrect ? '✓ Правильно' : '✕ Неправильно'}
+                    {isCorrect ? '✓ Правильно' : '× Неправильно'}
                   </span>
                 </div>
 
@@ -186,10 +209,7 @@ function Review() {
                     Твой ответ
                   </span>
 
-                  <p>
-                    {question.answers[userAnswer] ||
-                      'Ответ не найден'}
-                  </p>
+                  <p>{userAnswerText}</p>
                 </div>
 
                 {!isCorrect && (
@@ -198,22 +218,20 @@ function Review() {
                       Правильный ответ
                     </span>
 
-                    <p>{question.answers[question.correct]}</p>
+                    <p>{correctAnswerText}</p>
                   </div>
                 )}
-              </section>
+              </article>
             )
           })}
         </div>
 
-        <div className="take-test-actions">
-          <Link className="secondary-link" to={`/result/${id}`}>
-            ← К результату
-          </Link>
+        <div className="review-actions">
+          <Link to={resultLink}>Вернуться к результату</Link>
 
-          <Link className="primary-link" to="/tests">
-            Другие тесты ↗
-          </Link>
+          <Link to={`/test/${id}`}>Пройти ещё раз</Link>
+
+          <Link to="/tests">Все тесты</Link>
         </div>
       </div>
     </main>

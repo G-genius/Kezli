@@ -106,7 +106,7 @@ function TakeTest() {
       return total
     }, 0)
 
-    const { error: resultError } = await supabase
+    const { data: savedResult, error: resultError } = await supabase
       .from('results')
       .insert({
         test_id: id,
@@ -114,6 +114,8 @@ function TakeTest() {
         total: questions.length,
         answers,
       })
+      .select()
+      .single()
 
     if (resultError) {
       console.error('Ошибка сохранения результата:', resultError)
@@ -126,7 +128,9 @@ function TakeTest() {
       return
     }
 
-    navigate(`/result/${id}?score=${score}&total=${questions.length}`)
+    navigate(
+      `/result/${id}?score=${score}&total=${questions.length}&resultId=${savedResult.id}`
+    )
   }
 
   function goNext() {

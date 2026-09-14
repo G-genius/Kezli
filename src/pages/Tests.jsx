@@ -18,29 +18,25 @@ function Tests() {
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState('')
 
-  async function loadTests(showRefreshState = false) {
-    if (showRefreshState) {
-      setRefreshing(true)
-    } else {
-      setLoading(true)
-    }
-
+  async function loadTests() {
+    setLoading(true)
     setError('')
 
     const { data, error: testsError } = await supabase
       .from('tests')
       .select('*')
+      .eq('is_public', true)
       .order('created_at', { ascending: false })
 
     if (testsError) {
       console.error('Ошибка загрузки тестов:', testsError)
       setError('Не удалось загрузить тесты')
+      setTests([])
     } else {
       setTests(data || [])
     }
 
     setLoading(false)
-    setRefreshing(false)
   }
 
   useEffect(() => {

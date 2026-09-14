@@ -1,26 +1,47 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import './Result.css'
 
+function getValidNumber(value, fallback = 0) {
+  const number = Number(value)
+
+  if (!Number.isFinite(number) || number < 0) {
+    return fallback
+  }
+
+  return number
+}
+
 function Result() {
   const { id } = useParams()
+  const navigate = useNavigate()
   const [searchParams] = useSearchParams()
 
-  const score = Number(searchParams.get('score')) || 0
-  const total = Number(searchParams.get('total')) || 0
+  const rawScore = getValidNumber(searchParams.get('score'))
+  const rawTotal = getValidNumber(searchParams.get('total'))
+
+  const score = rawTotal > 0 ? Math.min(rawScore, rawTotal) : 0
+  const total = rawTotal
 
   const [test, setTest] = useState(null)
   const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState(false)
+  const [copyError, setCopyError] = useState('')
 
   useEffect(() => {
+    let mounted = true
+
     async function loadTest() {
       const { data, error } = await supabase
         .from('tests')
         .select('*')
         .eq('id', id)
         .single()
+
+      if (!mounted) {
+        return
+      }
 
       if (error) {
         console.error('Ошибка загрузки теста:', error)
@@ -32,20 +53,51 @@ function Result() {
     }
 
     loadTest()
+
+    return () => {
+      mounted = false
+    }
   }, [id])
 
   async function copyTestLink() {
     const link = `${window.location.origin}/test/${id}`
 
+    setCopied(false)
+    setCopyError('')
+
     try {
       await navigator.clipboard.writeText(link)
       setCopied(true)
-
-      setTimeout(() => {
-        setCopied(false)
-      }, 2000)
     } catch (error) {
       console.error('Не удалось скопировать ссылку:', error)
+
+      const textArea = document.createElement('textarea')
+      textArea.value = link
+      textArea.style.position = 'fixed'
+      textArea.style.left = '-9999px'
+
+      document.body.appendChild(textArea)
+      textArea.focus()
+      textArea.select()
+
+      try {
+        const copiedSuccessfully = document.execCommand('copy')
+
+        if (copiedSuccessfully) {
+          setCopied(true)
+        } else {
+          setCopyError('Не удалось скопировать ссылку')
+        }
+      } catch (fallbackError) {
+        console.error(
+          'Не удалось скопировать ссылку запасным способом:',
+          fallbackError
+        )
+
+        setCopyError('Не удалось скопировать ссылку')
+      } finally {
+        document.body.removeChild(textArea)
+      }
     }
   }
 
@@ -68,8 +120,8 @@ function Result() {
 
             <p>Не удалось загрузить информацию о тесте.</p>
 
-            <Link to="/" className="result-main-button">
-              Вернуться на главную
+            <Link to="/tests" className="result-main-button">
+              Вернуться к тестам
             </Link>
           </div>
         </div>
@@ -181,6 +233,8 @@ function Result() {
           >
             {copied ? '✓ Ссылка скопирована' : 'Поделиться тестом ↗'}
           </button>
+
+          {copyError && <p className="form-error">{copyError}</p>}
         </section>
 
         <div className="result-actions">
@@ -189,6 +243,13 @@ function Result() {
             className="result-action result-action-primary"
           >
             Пройти ещё раз
+          </Link>
+
+          <Link
+            to="/tests"
+            className="result-action result-action-secondary"
+          >
+            Все тесты
           </Link>
 
           <Link

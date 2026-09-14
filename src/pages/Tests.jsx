@@ -17,7 +17,6 @@ function Tests() {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState('')
-  const [deletingId, setDeletingId] = useState(null)
 
   async function loadTests(showRefreshState = false) {
     if (showRefreshState) {
@@ -47,37 +46,6 @@ function Tests() {
   useEffect(() => {
     loadTests()
   }, [])
-
-  async function deleteTest(testId) {
-    const confirmed = window.confirm(
-      'Удалить этот тест? Все вопросы и результаты тоже будут удалены.'
-    )
-
-    if (!confirmed) {
-      return
-    }
-
-    setDeletingId(testId)
-    setError('')
-
-    const { error: deleteError } = await supabase
-      .from('tests')
-      .delete()
-      .eq('id', testId)
-
-    if (deleteError) {
-      console.error('Ошибка удаления теста:', deleteError)
-      setError('Не удалось удалить тест')
-      setDeletingId(null)
-      return
-    }
-
-    setTests((currentTests) =>
-      currentTests.filter((test) => test.id !== testId)
-    )
-
-    setDeletingId(null)
-  }
 
   const filteredTests = useMemo(() => {
     const searchValue = search.trim().toLowerCase()
@@ -173,9 +141,7 @@ function Tests() {
 
             <h2>Ничего не найдено</h2>
 
-            <p>
-              Попробуй изменить запрос или очистить поле поиска.
-            </p>
+            <p>Попробуй изменить запрос или очистить поле поиска.</p>
 
             <button
               type="button"
@@ -214,30 +180,12 @@ function Tests() {
                     <h2>{test.title}</h2>
                   </div>
 
-                  <div className="test-card-actions">
-                    <Link
-                      className="test-card-main-action"
-                      to={`/test/${test.id}`}
-                    >
-                      Пройти тест <span>↗</span>
-                    </Link>
-
-                    <Link
-                      className="test-card-secondary-action"
-                      to={`/results/${test.id}`}
-                    >
-                      Результаты
-                    </Link>
-
-                    <button
-                      type="button"
-                      className="delete-button"
-                      disabled={deletingId === test.id}
-                      onClick={() => deleteTest(test.id)}
-                    >
-                      {deletingId === test.id ? 'Удаление...' : 'Удалить'}
-                    </button>
-                  </div>
+                  <Link
+                    className="test-card-main-action"
+                    to={`/test/${test.id}`}
+                  >
+                    Открыть <span>↗</span>
+                  </Link>
                 </article>
               ))}
             </div>

@@ -17,6 +17,7 @@ import Auth from './pages/Auth'
 import MyTests from './pages/MyTests'
 import Header from './components/Header'
 import ProtectedRoute from './components/ProtectedRoute'
+import Review from './pages/Review'
 
 import './App.css'
 
@@ -64,6 +65,8 @@ function App() {
         <Route path="/results/:id" element={<Results />} />
 
         <Route path="/auth" element={<Auth />} />
+
+        <Route path="/review/:id" element={<Review />} />
 
         <Route
           path="/my-tests"

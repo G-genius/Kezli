@@ -112,6 +112,7 @@ function TakeTest() {
         test_id: id,
         score,
         total: questions.length,
+        answers,
       })
 
     if (resultError) {

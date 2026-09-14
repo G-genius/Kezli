@@ -238,8 +238,15 @@ function Result() {
 
         <div className="result-actions">
           <Link
-            to={`/test/${id}`}
+            to={`/review/${id}`}
             className="result-action result-action-primary"
+          >
+            Посмотреть ответы
+          </Link>
+
+          <Link
+            to={`/test/${id}`}
+            className="result-action result-action-secondary"
           >
             Пройти ещё раз
           </Link>

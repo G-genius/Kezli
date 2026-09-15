@@ -2,6 +2,18 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
+function normalizeAnswer(value) {
+  if (value === null || value === undefined) {
+    return ''
+  }
+
+  return String(value).trim()
+}
+
+function isCorrectAnswer(userAnswer, correctAnswer) {
+  return normalizeAnswer(userAnswer) === normalizeAnswer(correctAnswer)
+}
+
 function TakeTest() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -99,12 +111,22 @@ function TakeTest() {
     setError('')
 
     const score = questions.reduce((total, question, index) => {
-      if (answers[index] === question.correct) {
+      const selectedAnswer = answers[index]
+      const correctAnswer = question.correct
+
+      if (isCorrectAnswer(selectedAnswer, correctAnswer)) {
         return total + 1
       }
 
       return total
     }, 0)
+
+    const normalizedAnswers = Object.fromEntries(
+      Object.entries(answers).map(([questionIndex, answerIndex]) => [
+        questionIndex,
+        Number(answerIndex),
+      ])
+    )
 
     const { data: savedResult, error: resultError } = await supabase
       .from('results')
@@ -112,9 +134,9 @@ function TakeTest() {
         test_id: id,
         score,
         total: questions.length,
-        answers,
+        answers: normalizedAnswers,
       })
-      .select()
+      .select('id')
       .single()
 
     if (resultError) {
@@ -247,7 +269,6 @@ function TakeTest() {
 
         <div className="test-progress-info">
           <span>Прогресс прохождения</span>
-
           <strong>{Math.round(progress)}%</strong>
         </div>
 
@@ -291,7 +312,9 @@ function TakeTest() {
                     {String.fromCharCode(65 + answerIndex)}
                   </span>
 
-                  <span className="take-answer-text">{answer}</span>
+                  <span className="take-answer-text">
+                    {answer}
+                  </span>
 
                   <span className="take-answer-check">
                     {isSelected ? '✓' : '↗'}
